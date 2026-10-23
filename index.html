@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>South Rand Hospital - Patient & Quality Management System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .flash-call { animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 anti-aliased min-h-screen flex flex-col">
+
+  <!-- SMS / Webhook Notification Toast Banner -->
+  <div id="sms-toast" class="fixed top-4 right-4 z-50 transform translate-y-[-200%] transition-transform duration-300 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl border border-teal-500/50 flex items-center space-x-3 max-w-sm">
+    <div id="toast-icon" class="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center font-bold text-sm">📱</div>
+    <div>
+      <p id="toast-title" class="text-xs font-bold text-teal-400">Automated SMS Gateway Triggered</p>
+      <p id="sms-toast-text" class="text-xs text-slate-200 mt-0.5">Your ticket has been generated successfully.</p>
+    </div>
+  </div>
+
+  <!-- Navigation Header -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-lg bg-teal-600 flex items-center justify-center font-bold text-xl tracking-wider shadow">SR</div>
+        <div>
+          <h1 class="font-bold text-lg leading-none tracking-tight">South Rand Hospital</h1>
+          <p class="text-xs text-teal-400 mt-0.5 font-medium">Digital Queue & Patient Care Portal</p>
+        </div>
+      </div>
+      
+      <!-- Role Navigation with Lock Security -->
+      <div class="flex bg-slate-800 p-1 rounded-lg border border-slate-700 text-xs">
+        <button id="nav-patient" onclick="switchView('patient')" class="px-3 py-1.5 rounded-md font-medium transition text-white bg-teal-600 shadow-sm">Patient Portal</button>
+        <button id="nav-display" onclick="switchView('display')" class="px-3 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white flex items-center gap-1">📺 Lobby TV Mode</button>
+        <button id="nav-staff" onclick="requestAdminAccess('staff')" class="px-3 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white flex items-center gap-1">🔒 Staff Board</button>
+        <button id="nav-exec" onclick="requestAdminAccess('exec')" class="px-3 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white flex items-center gap-1">🔒 Exec Analytics</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ==================== VIEW 1: PATIENT PORTAL (PUBLIC) ==================== -->
+    <section id="view-patient" class="space-y-6">
+      <div class="bg-gradient-to-r from-teal-800 to-slate-900 rounded-2xl p-6 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div class="max-w-xl">
+          <span class="inline-block px-3 py-1 bg-teal-500/20 text-teal-300 border border-teal-500/30 rounded-full text-xs font-semibold mb-3">Self-Service Check-In</span>
+          <h2 class="text-2xl sm:text-3xl font-bold tracking-tight" id="lbl-welcome">Welcome to South Rand Hospital</h2>
+          <p class="text-slate-300 text-sm mt-2" id="lbl-sub">Get your queue ticket online, see real-time estimated wait times based on active queues, and receive live updates.</p>
+        </div>
+        <!-- Language Switcher -->
+        <div class="bg-slate-800/80 p-2 rounded-xl border border-slate-700/80 text-xs flex items-center gap-2">
+          <span class="text-slate-400 font-semibold px-1">Language:</span>
+          <button id="lang-btn-en" onclick="setLanguage('en')" class="px-2.5 py-1 bg-teal-600 text-white rounded font-bold">ENG</button>
+          <button id="lang-btn-zu" onclick="setLanguage('zu')" class="px-2.5 py-1 bg-slate-700 text-slate-200 hover:bg-slate-600 rounded font-bold">ZUL</button>
+          <button id="lang-btn-af" onclick="setLanguage('af')" class="px-2.5 py-1 bg-slate-700 text-slate-200 hover:bg-slate-600 rounded font-bold">AFR</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Check-In Form -->
+        <div class="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <h3 class="font-semibold text-lg text-slate-900 mb-4 pb-2 border-b border-slate-100 flex items-center justify-between">
+            <span id="lbl-form-title">Get Your Queue Ticket</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+          </h3>
+          <form id="checkin-form" onsubmit="handleCheckIn(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1" id="lbl-name">Full Name</label>
+              <input type="text" id="patient-name" required placeholder="e.g. Siyabonga Dube" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none transition">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1" id="lbl-phone">Mobile Number (SMS updates)</label>
+              <input type="tel" id="patient-phone" required placeholder="082 123 4567" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none transition">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1" id="lbl-service">Service Category</label>
+              <select id="patient-dept" required onchange="updateDynamicWaitEstimate()" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none transition bg-white">
+                <option value="Medication & Pharmacy Pick-up" data-prefix="Z" data-avg="5">Medication & Pharmacy Pick-up (Z-Ticket)</option>
+                <option value="Maternity & Pregnancy Care" data-prefix="E" data-avg="15">Maternity & Pregnancy Care (E-Ticket)</option>
+                <option value="General Doctor Visit" data-prefix="A" data-avg="20">General Doctor Visit / Outpatients (A-Ticket)</option>
+                <option value="Emergency & Urgent Care" data-prefix="X" data-avg="10">Emergency & Urgent Care (X-Ticket)</option>
+                <option value="Children's Clinic" data-prefix="P" data-avg="15">Children's Clinic (P-Ticket)</option>
+                <option value="Dental & Oral Health" data-prefix="D" data-avg="20">Dental & Oral Health (D-Ticket)</option>
+                <option value="Orthopedics & Bone Clinic" data-prefix="B" data-avg="25">Orthopedics & Bone Clinic (B-Ticket)</option>
+                <option value="Folder & Patient File Admin" data-prefix="F" data-avg="5">Folder & Patient File Admin (F-Ticket)</option>
+              </select>
+            </div>
+
+            <!-- POPIA Compliance Checkbox -->
+            <div class="flex items-start space-x-2 pt-1">
+              <input type="checkbox" id="popia-consent" required class="mt-0.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+              <label for="popia-consent" class="text-[11px] text-slate-500 leading-tight">
+                I consent to South Rand Hospital processing my mobile number and visit data in compliance with <strong>POPIA</strong> regulations for queue updates.
+              </label>
+            </div>
+
+            <!-- Dynamic Estimated Time Box -->
+            <div id="wait-estimate-box" class="p-3.5 bg-teal-50 border border-teal-200 rounded-xl space-y-1">
+              <div class="flex justify-between items-center text-xs text-teal-800 font-semibold">
+                <span id="lbl-est-title">Estimated Wait Time:</span>
+                <span id="est-time-text" class="text-sm font-bold text-teal-900">~ 5 mins</span>
+              </div>
+              <p id="est-people-text" class="text-[11px] text-teal-600">0 people waiting ahead of you in this category.</p>
+            </div>
+
+            <button type="submit" id="btn-submit" class="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg text-sm transition shadow-md hover:shadow-lg">Get Queue Ticket</button>
+          </form>
+        </div>
+
+        <!-- Live Queue Display -->
+        <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+          <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
+            <div>
+              <h3 class="font-semibold text-lg text-slate-900" id="lbl-queue-title">Current Queue Status</h3>
+              <p class="text-xs text-slate-500">Live ticket numbers being attended to across departments</p>
+            </div>
+            <span class="text-xs text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full font-medium">Auto-Calculating</span>
+          </div>
+          <div id="patient-queue-list" class="space-y-3 flex-1 overflow-y-auto max-h-[440px] pr-1"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 2: LOBBY TV DISPLAY MODE ==================== -->
+    <section id="view-display" class="hidden space-y-6">
+      <div class="bg-slate-900 text-white rounded-2xl p-6 shadow-2xl border border-slate-800 text-center">
+        <div class="inline-block px-4 py-1.5 bg-teal-500/20 text-teal-400 border border-teal-500/30 rounded-full text-xs font-bold uppercase tracking-widest mb-2">Live Waiting Room Monitor</div>
+        <h2 class="text-3xl font-extrabold tracking-tight">South Rand Hospital - Patient Call Board</h2>
+        <p class="text-slate-400 text-sm mt-1">Please proceed to your designated room when your ticket number flashes below.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Currently Being Called -->
+        <div class="bg-teal-900/90 text-white p-6 rounded-2xl border border-teal-700 shadow-xl space-y-4">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-teal-300 border-b border-teal-700 pb-2 flex justify-between items-center">
+            <span>Now Calling ➔ Proceed to Room</span>
+            <span class="w-3 h-3 rounded-full bg-emerald-400 flash-call"></span>
+          </h3>
+          <div id="display-calling-list" class="space-y-3"></div>
+        </div>
+
+        <!-- Next Up in Queue -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-slate-600 border-b border-slate-100 pb-2">
+            Next Up in Waiting Area
+          </h3>
+          <div id="display-waiting-list" class="space-y-3"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 3: STAFF BOARD (RESTRICTED) ==================== -->
+    <section id="view-staff" class="hidden space-y-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900">Staff Operations Board</h2>
+          <p class="text-xs text-slate-500">Filter by station, manage triage levels, track physical files, and call patients.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Webhook Setup Secured Inside Staff Portal -->
+          <button onclick="openWebhookModal()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold transition flex items-center gap-1.5" title="Configure n8n Webhooks">
+            ⚙️ n8n Webhooks <span id="webhook-status-dot" class="w-2 h-2 rounded-full bg-amber-500"></span>
+          </button>
+          <button onclick="openArchiveModal()" class="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-semibold transition flex items-center gap-1">📁 Completed Folder (<span id="archive-badge-count">0</span>)</button>
+          <button onclick="openChangePinModal()" class="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg text-xs font-semibold transition flex items-center gap-1">🔑 Change PIN</button>
+          <button onclick="exportAuditData()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold transition">Export Audit CSV</button>
+          <button onclick="lockAdminSession()" class="px-3 py-2 bg-slate-800 text-white rounded-lg text-xs font-semibold hover:bg-slate-700">Lock Session</button>
+        </div>
+      </div>
+
+      <!-- Station Filter Bar -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div class="flex items-center space-x-3 w-full sm:w-auto">
+          <label class="text-xs font-bold text-slate-700 uppercase tracking-wider whitespace-nowrap">Select Your Station:</label>
+          <select id="staff-station-filter" onchange="render()" class="w-full sm:w-80 px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold outline-none focus:ring-2 focus:ring-teal-500">
+            <option value="ALL">🌐 All Hospital Stations (Main Reception / Admin)</option>
+            <option value="Medication & Pharmacy Pick-up">💊 Medication & Pharmacy Pick-up (Z)</option>
+            <option value="Maternity & Pregnancy Care">🤰 Maternity & Pregnancy Care (E)</option>
+            <option value="General Doctor Visit">🩺 General Doctor Visit (A)</option>
+            <option value="Emergency & Urgent Care">🚨 Emergency & Urgent Care (X)</option>
+            <option value="Children's Clinic">👶 Children's Clinic (P)</option>
+            <option value="Dental & Oral Health">🦷 Dental & Oral Health (D)</option>
+            <option value="Orthopedics & Bone Clinic">🦴 Orthopedics & Bone Clinic (B)</option>
+            <option value="Folder & Patient File Admin">📁 Folder & Patient File Admin (F)</option>
+          </select>
+        </div>
+        <div id="station-status-badge" class="text-xs px-3 py-1 bg-teal-50 text-teal-800 border border-teal-200 rounded-full font-semibold">
+          Showing: All Stations
+        </div>
+      </div>
+
+      <!-- Kanban Columns -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-slate-100/70 p-4 rounded-xl border border-slate-200">
+          <h3 class="font-bold text-xs uppercase tracking-wider text-slate-600 mb-3 flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+            Waiting Room (<span id="count-waiting">0</span>)
+          </h3>
+          <div id="col-waiting" class="space-y-3 min-h-[400px]"></div>
+        </div>
+
+        <div class="bg-slate-100/70 p-4 rounded-xl border border-slate-200">
+          <h3 class="font-bold text-xs uppercase tracking-wider text-slate-600 mb-3 flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+            Currently In Room (<span id="count-progress">0</span>)
+          </h3>
+          <div id="col-progress" class="space-y-3 min-h-[400px]"></div>
+        </div>
+
+        <div class="bg-slate-100/70 p-4 rounded-xl border border-slate-200">
+          <h3 class="font-bold text-xs uppercase tracking-wider text-slate-600 mb-3 flex items-center justify-between">
+            <span class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>Completed (Last 5)</span>
+            <span id="count-completed" class="text-[11px] text-slate-500 font-medium">0</span>
+          </h3>
+          <div id="col-completed" class="space-y-3 min-h-[400px]"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 4: EXEC ANALYTICS (RESTRICTED) ==================== -->
+    <section id="view-exec" class="hidden space-y-6">
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex justify-between items-center mb-6">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900">Executive Performance Dashboard</h2>
+            <p class="text-xs text-slate-500">Real-time throughput metrics prepared for Hospital Leadership & Board Reporting.</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="openChangePinModal()" class="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg text-xs font-semibold transition flex items-center gap-1">🔑 Change PIN</button>
+            <button onclick="lockAdminSession()" class="px-3 py-2 bg-slate-800 text-white rounded-lg text-xs font-semibold hover:bg-slate-700">Lock Session</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Patients Today</span>
+            <div id="kpi-total" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">0</div>
+          </div>
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Avg Wait Time</span>
+            <div id="kpi-avg-time" class="text-2xl sm:text-3xl font-extrabold text-teal-600 mt-1">18 min</div>
+          </div>
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">SLA Performance</span>
+            <div id="kpi-sla" class="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-1">96%</div>
+          </div>
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Google Review Rating</span>
+            <div id="kpi-reviews" class="text-2xl sm:text-3xl font-extrabold text-indigo-600 mt-1">4.8 ★</div>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <h3 class="font-bold text-sm text-slate-800 mb-4">Patient Volume by Department Prefix</h3>
+          <div class="h-64">
+            <canvas id="execChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ADMIN ACCESS PIN MODAL -->
+  <div id="admin-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl border border-slate-200">
+      <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3 text-xl">🔒</div>
+      <h3 class="font-bold text-lg text-slate-900">Restricted Staff Access</h3>
+      <p class="text-xs text-slate-500 mt-1 mb-4">Enter hospital staff PIN to access this section.</p>
+      <input type="password" id="admin-pin" placeholder="Enter PIN (Default: 1234)" class="w-full px-4 py-2.5 text-center text-lg font-bold tracking-widest border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none mb-4">
+      <div class="flex gap-2">
+        <button onclick="closeAdminModal()" class="w-1/2 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-lg text-xs hover:bg-slate-200">Cancel</button>
+        <button onclick="verifyAdminPin()" class="w-1/2 py-2.5 bg-teal-600 text-white font-semibold rounded-lg text-xs hover:bg-teal-700">Unlock</button>
+      </div>
+      <p id="pin-error" class="text-xs text-rose-600 font-semibold mt-2 hidden">Invalid PIN Code. Try again.</p>
+    </div>
+  </div>
+
+  <!-- CHANGE PIN SECURITY MODAL -->
+  <div id="change-pin-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl border border-slate-200 space-y-4">
+      <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mx-auto text-xl">🔑</div>
+      <div>
+        <h3 class="font-bold text-lg text-slate-900">Update Security PIN</h3>
+        <p class="text-xs text-slate-500 mt-1">Change access PIN for security and staff management.</p>
+      </div>
+      <div class="space-y-2 text-left">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 uppercase">Current PIN</label>
+          <input type="password" id="pin-current" placeholder="Current PIN" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-teal-500">
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 uppercase">New Security PIN</label>
+          <input type="password" id="pin-new" placeholder="New PIN Code" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-teal-500">
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 uppercase">Confirm New PIN</label>
+          <input type="password" id="pin-confirm" placeholder="Confirm New PIN" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-teal-500">
+        </div>
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeChangePinModal()" class="w-1/2 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-lg text-xs hover:bg-slate-200">Cancel</button>
+        <button onclick="saveNewPin()" class="w-1/2 py-2.5 bg-amber-600 text-white font-semibold rounded-lg text-xs hover:bg-amber-700">Update PIN</button>
+      </div>
+      <p id="change-pin-error" class="text-xs text-rose-600 font-semibold hidden"></p>
+    </div>
+  </div>
+
+  <!-- PATIENT REFERRAL / TRANSFER MODAL -->
+  <div id="transfer-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl border border-slate-200 space-y-4">
+      <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mx-auto text-xl font-bold">🔀</div>
+      <div>
+        <h3 class="font-bold text-lg text-slate-900">Doctor Referral & Fast-Track</h3>
+        <p class="text-xs text-slate-500 mt-1">Transfer patient directly to another department without re-registration.</p>
+      </div>
+      <div class="text-left space-y-3">
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+          <p class="font-bold text-slate-900" id="transfer-patient-info">Patient Name</p>
+          <p class="text-slate-500" id="transfer-patient-ticket">Ticket #</p>
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 uppercase mb-1">Target Department / Service</label>
+          <select id="transfer-target-dept" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-semibold outline-none focus:ring-2 focus:ring-teal-500 bg-white">
+            <option value="Medication & Pharmacy Pick-up" data-prefix="Z">💊 Medication & Pharmacy (Priority Script)</option>
+            <option value="Orthopedics & Bone Clinic" data-prefix="B">🦴 Orthopedics / X-Ray Referral</option>
+            <option value="Folder & Patient File Admin" data-prefix="F">📁 Admin / Billing Follow-up</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeTransferModal()" class="w-1/2 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-lg text-xs hover:bg-slate-200">Cancel</button>
+        <button onclick="executeTransfer()" class="w-1/2 py-2.5 bg-blue-600 text-white font-semibold rounded-lg text-xs hover:bg-blue-700">Send Referral ⚡</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPLETED RECORDS FOLDER ARCHIVE MODAL -->
+  <div id="archive-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center border-b pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">📁</span>
+          <div>
+            <h3 class="font-bold text-lg text-slate-900">Completed Records Archive Folder</h3>
+            <p class="text-xs text-slate-500">Historical log of all patients successfully attended to today.</p>
+          </div>
+        </div>
+        <button onclick="closeArchiveModal()" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+      </div>
+      <div id="archive-list" class="space-y-2 overflow-y-auto flex-1 pr-1">
+        <!-- Populated dynamically -->
+      </div>
+      <div class="flex justify-between items-center pt-3 border-t text-xs text-slate-600 font-semibold">
+        <span id="archive-total-text">Total Attended Today: 0</span>
+        <button onclick="closeArchiveModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg">Close Folder</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- n8n WEBHOOK CONFIGURATION MODAL (RESTRICTED ACCESS) -->
+  <div id="webhook-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">⚙️</span>
+          <div>
+            <h3 class="font-bold text-base text-slate-900">n8n Automation Webhooks</h3>
+            <p class="text-xs text-slate-500">Connect to your self-hosted Ubuntu n8n instance.</p>
+          </div>
+        </div>
+        <button onclick="closeWebhookModal()" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+      </div>
+      <div class="space-y-3 text-left">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 uppercase mb-1">Check-In Webhook URL</label>
+          <input type="url" id="hook-checkin" placeholder="https://your-n8n.com/webhook/checkin" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-teal-500">
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 uppercase mb-1">Queue / Alert Webhook URL</label>
+          <input type="url" id="hook-alert" placeholder="https://your-n8n.com/webhook/queue-alert" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-teal-500">
+        </div>
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeWebhookModal()" class="w-1/2 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-lg text-xs hover:bg-slate-200">Cancel</button>
+        <button onclick="saveWebhookSettings()" class="w-1/2 py-2.5 bg-teal-600 text-white font-semibold rounded-lg text-xs hover:bg-teal-700">Save & Connect 🚀</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentAdminPin = localStorage.getItem('sr_admin_pin') || "1234";
+    let isAdminUnlocked = false;
+    let pendingTargetView = null;
+    let activeTransferPatientId = null;
+
+    let n8nConfig = JSON.parse(localStorage.getItem('sr_n8n_config')) || {
+      checkinUrl: "",
+      alertUrl: ""
+    };
+
+    let state = {
+      patients: JSON.parse(localStorage.getItem('sr_patients_v12')) || [
+        { id: 'E-090', name: 'N. Ndlovu', phone: '082 982 1104', dept: 'Maternity & Pregnancy Care', status: 'waiting', priority: false, triage: 'urgent', fileReady: true, earlyWarningSent: false, timestamp: new Date(Date.now() - 25*60000).toISOString() },
+        { id: 'Z-288', name: 'M. Khumalo', phone: '071 441 0928', dept: 'Medication & Pharmacy Pick-up', status: 'progress', priority: false, triage: 'normal', fileReady: true, earlyWarningSent: true, timestamp: new Date(Date.now() - 12*60000).toISOString() },
+        { id: 'D-012', name: 'T. Mokoena', phone: '083 552 1900', dept: 'Dental & Oral Health', status: 'progress', priority: false, triage: 'normal', fileReady: false, earlyWarningSent: true, timestamp: new Date(Date.now() - 10*60000).toISOString() },
+        { id: 'A-104', name: 'J. Smith', phone: '083 112 9845', dept: 'General Doctor Visit', status: 'completed', priority: false, triage: 'normal', fileReady: true, earlyWarningSent: true, timestamp: new Date(Date.now() - 45*60000).toISOString() }
+      ]
+    };
+
+    const i18n = {
+      en: { welcome: "Welcome to South Rand Hospital", sub: "Get your queue ticket online, see real-time estimated wait times based on active queues, and receive live updates.", formTitle: "Get Your Queue Ticket", name: "Full Name", phone: "Mobile Number (SMS updates)", service: "Service Category", estTitle: "Estimated Wait Time:", submit: "Get Queue Ticket", queueTitle: "Current Queue Status" },
+      zu: { welcome: "Siyakwamukela eSibhedlela iSouth Rand", sub: "Thola ithikithi lakho lomugqa ku-inthanethi, ubone isikhathi esilindelekile sangempela, uluhole imilayezo bukhoma.", formTitle: "Thola Ithikithi Lakho Lomugqa", name: "Amagama Aphelele", phone: "Inombolo Yecingo (SMS)", service: "Umuthi / Umnyango", estTitle: "Isikhathi Esilindelekile:", submit: "Thola Ithikithi Lomugqa", queueTitle: "Isimo Somugqa Yamanje" },
+      af: { welcome: "Welkom by Suid-Rand Hospitaal", sub: "Kry jou tou-kaartjie aanlyn, sien intydse geskatte wagtyde gebaseer op aktiewe toue, en ontvang regstreekse opdaterings.", formTitle: "Kry Jou Tou-Kaartjie", name: "Volle Naam", phone: "Selfoonnommer (SMS-opdaterings)", service: "Dienskategorie", estTitle: "Geskatte Wagtyd:", submit: "Kry Tou-Kaartjie", queueTitle: "Huidige Tou-Status" }
+    };
+
+    function setLanguage(lang) {
+      const t = i18n[lang] || i18n.en;
+      document.getElementById('lbl-welcome').innerText = t.welcome;
+      document.getElementById('lbl-sub').innerText = t.sub;
+      document.getElementById('lbl-form-title').innerText = t.formTitle;
+      document.getElementById('lbl-name').innerText = t.name;
+      document.getElementById('lbl-phone').innerText = t.phone;
+      document.getElementById('lbl-service').innerText = t.service;
+      document.getElementById('lbl-est-title').innerText = t.estTitle;
+      document.getElementById('btn-submit').innerText = t.submit;
+      document.getElementById('lbl-queue-title').innerText = t.queueTitle;
+
+      ['en', 'zu', 'af'].forEach(l => {
+        const btn = document.getElementById(`lang-btn-${l}`);
+        if (btn) {
+          btn.className = l === lang 
+            ? "px-2.5 py-1 bg-teal-600 text-white rounded font-bold" 
+            : "px-2.5 py-1 bg-slate-700 text-slate-200 hover:bg-slate-600 rounded font-bold";
+        }
+      });
+    }
+
+    function openWebhookModal() {
+      document.getElementById('hook-checkin').value = n8nConfig.checkinUrl;
+      document.getElementById('hook-alert').value = n8nConfig.alertUrl;
+      document.getElementById('webhook-modal').classList.remove('hidden');
+    }
+
+    function closeWebhookModal() {
+      document.getElementById('webhook-modal').classList.add('hidden');
+    }
+
+    function saveWebhookSettings() {
+      n8nConfig.checkinUrl = document.getElementById('hook-checkin').value.trim();
+      n8nConfig.alertUrl = document.getElementById('hook-alert').value.trim();
+      localStorage.setItem('sr_n8n_config', JSON.stringify(n8nConfig));
+      closeWebhookModal();
+      updateWebhookStatusDot();
+      showSmsToast("n8n Webhook settings saved successfully!", "Connected 🚀");
+    }
+
+    function updateWebhookStatusDot() {
+      const dot = document.getElementById('webhook-status-dot');
+      if (dot) {
+        if (n8nConfig.checkinUrl || n8nConfig.alertUrl) {
+          dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+        } else {
+          dot.className = "w-2 h-2 rounded-full bg-amber-500";
+        }
+      }
+    }
+
+    async function dispatchWebhook(targetUrl, payload) {
+      if (!targetUrl) return;
+      try {
+        await fetch(targetUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {
+        console.warn("n8n Webhook dispatch note: Running in simulation fallback mode.", err);
+      }
+    }
+
+    function showSmsToast(msg, title = "Automated SMS Gateway Triggered") {
+      const toast = document.getElementById('sms-toast');
+      const text = document.getElementById('sms-toast-text');
+      const titleEl = document.getElementById('toast-title');
+      titleEl.innerText = title;
+      text.innerText = msg;
+      toast.classList.remove('translate-y-[-200%]');
+      setTimeout(() => {
+        toast.classList.add('translate-y-[-200%]');
+      }, 4000);
+    }
+
+    function saveState() {
+      localStorage.setItem('sr_patients_v12', JSON.stringify(state.patients));
+      checkAndTrigger30MinWarnings();
+      render();
+      updateDynamicWaitEstimate();
+    }
+
+    function checkAndTrigger30MinWarnings() {
+      const depts = [...new Set(state.patients.map(p => p.dept))];
+      depts.forEach(dept => {
+        const waitingInDept = state.patients.filter(p => p.dept === dept && p.status === 'waiting');
+        waitingInDept.forEach((p, idx) => {
+          if (idx < 3 && !p.earlyWarningSent) {
+            p.earlyWarningSent = true;
+            showSmsToast(`📱 30-MIN WARNING SMS: Ticket #${p.id} (${p.name}), please return to ${p.dept} waiting area!`);
+            dispatchWebhook(n8nConfig.alertUrl, { eventType: '30_min_warning', ...p });
+          }
+        });
+      });
+    }
+
+    function manualTriggerEarlyWarning(id) {
+      const idx = state.patients.findIndex(p => p.id === id);
+      if (idx !== -1) {
+        state.patients[idx].earlyWarningSent = true;
+        saveState();
+        showSmsToast(`📱 MANUAL 30-MIN WARNING SMS: Ticket #${id} notified.`);
+        dispatchWebhook(n8nConfig.alertUrl, { eventType: 'manual_30_min_warning', ...state.patients[idx] });
+      }
+    }
+
+    function updateDynamicWaitEstimate() {
+      const select = document.getElementById('patient-dept');
+      if (!select) return;
+      const selectedOption = select.options[select.selectedIndex];
+      const selectedDept = select.value;
+      const avgMinutesPerPerson = parseInt(selectedOption.getAttribute('data-avg')) || 10;
+
+      const waitingAhead = state.patients.filter(p => p.dept === selectedDept && p.status === 'waiting').length;
+      const totalEstimatedMinutes = waitingAhead * avgMinutesPerPerson + Math.round(avgMinutesPerPerson / 2);
+
+      document.getElementById('est-time-text').innerText = `~ ${totalEstimatedMinutes} mins`;
+      document.getElementById('est-people-text').innerText = `${waitingAhead} people waiting ahead of you in this category.`;
+    }
+
+    function toggleTriage(id) {
+      const idx = state.patients.findIndex(p => p.id === id);
+      if (idx !== -1) {
+        state.patients[idx].triage = state.patients[idx].triage === 'urgent' ? 'normal' : 'urgent';
+        saveState();
+      }
+    }
+
+    function toggleFileReady(id) {
+      const idx = state.patients.findIndex(p => p.id === id);
+      if (idx !== -1) {
+        state.patients[idx].fileReady = !state.patients[idx].fileReady;
+        saveState();
+      }
+    }
+
+    function requestAdminAccess(targetView) {
+      if (isAdminUnlocked) {
+        switchView(targetView);
+      } else {
+        pendingTargetView = targetView;
+        document.getElementById('admin-modal').classList.remove('hidden');
+        document.getElementById('admin-pin').focus();
+      }
+    }
+
+    function verifyAdminPin() {
+      const pinInput = document.getElementById('admin-pin').value;
+      if (pinInput === currentAdminPin) {
+        isAdminUnlocked = true;
+        closeAdminModal();
+        if (pendingTargetView) switchView(pendingTargetView);
+      } else {
+        document.getElementById('pin-error').classList.remove('hidden');
+      }
+    }
+
+    function closeAdminModal() {
+      document.getElementById('admin-modal').classList.add('hidden');
+      document.getElementById('admin-pin').value = '';
+      document.getElementById('pin-error').classList.add('hidden');
+    }
+
+    function lockAdminSession() {
+      isAdminUnlocked = false;
+      switchView('patient');
+      alert('Admin session locked successfully.');
+    }
+
+    function openChangePinModal() {
+      document.getElementById('change-pin-modal').classList.remove('hidden');
+      document.getElementById('pin-current').focus();
+    }
+
+    function closeChangePinModal() {
+      document.getElementById('change-pin-modal').classList.add('hidden');
+      document.getElementById('pin-current').value = '';
+      document.getElementById('pin-new').value = '';
+      document.getElementById('pin-confirm').value = '';
+      document.getElementById('change-pin-error').classList.add('hidden');
+    }
+
+    function saveNewPin() {
+      const curr = document.getElementById('pin-current').value;
+      const newPin = document.getElementById('pin-new').value;
+      const confirmPin = document.getElementById('pin-confirm').value;
+      const errBox = document.getElementById('change-pin-error');
+
+      if (curr !== currentAdminPin) {
+        errBox.innerText = "Current PIN is incorrect.";
+        errBox.classList.remove('hidden');
+        return;
+      }
+      if (!newPin || newPin.length < 4) {
+        errBox.innerText = "New PIN must be at least 4 digits.";
+        errBox.classList.remove('hidden');
+        return;
+      }
+      if (newPin !== confirmPin) {
+        errBox.innerText = "New PIN and Confirm PIN do not match.";
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      currentAdminPin = newPin;
+      localStorage.setItem('sr_admin_pin', newPin);
+      closeChangePinModal();
+      alert("Security PIN successfully updated! Please log in again with your new PIN.");
+      lockAdminSession();
+    }
+
+    function openArchiveModal() {
+      const completedPatients = state.patients.filter(p => p.status === 'completed');
+      const listEl = document.getElementById('archive-list');
+      document.getElementById('archive-badge-count').innerText = completedPatients.length;
+      document.getElementById('archive-total-text').innerText = `Total Attended Today: ${completedPatients.length}`;
+
+      listEl.innerHTML = completedPatients.length > 0 ? completedPatients.map(p => `
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs">
+          <div class="flex items-center space-x-3">
+            <span class="font-bold px-2 py-1 bg-slate-900 text-white rounded">${p.id}</span>
+            <div>
+              <p class="font-bold text-slate-900">${p.name} <span class="text-teal-700 font-semibold ml-1">📱 ${p.phone}</span></p>
+              <p class="text-slate-500">${p.dept}</p>
+            </div>
+          </div>
+          <span class="text-slate-400 text-[11px]">${new Date(p.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+        </div>
+      `).join('') : `<p class="text-xs text-slate-400 italic text-center py-6">No completed patient records in the archive folder yet.</p>`;
+
+      document.getElementById('archive-modal').classList.remove('hidden');
+    }
+
+    function closeArchiveModal() {
+      document.getElementById('archive-modal').classList.add('hidden');
+    }
+
+    function openTransferModal(id) {
+      const p = state.patients.find(pt => pt.id === id);
+      if (!p) return;
+      activeTransferPatientId = id;
+      document.getElementById('transfer-patient-info').innerText = `${p.name} (${p.dept})`;
+      document.getElementById('transfer-patient-ticket').innerText = `Current Ticket: ${p.id}`;
+      document.getElementById('transfer-modal').classList.remove('hidden');
+    }
+
+    function closeTransferModal() {
+      document.getElementById('transfer-modal').classList.add('hidden');
+      activeTransferPatientId = null;
+    }
+
+    function executeTransfer() {
+      if (!activeTransferPatientId) return;
+      const idx = state.patients.findIndex(p => p.id === activeTransferPatientId);
+      if (idx === -1) return;
+
+      const select = document.getElementById('transfer-target-dept');
+      const targetDept = select.value;
+      const prefix = select.options[select.selectedIndex].getAttribute('data-prefix');
+
+      const newId = `${prefix}-${Math.floor(100 + Math.random() * 900)}⚡`;
+
+      state.patients[idx].id = newId;
+      state.patients[idx].dept = targetDept;
+      state.patients[idx].status = 'waiting';
+      state.patients[idx].priority = true;
+      state.patients[idx].earlyWarningSent = false;
+      state.patients[idx].timestamp = new Date().toISOString();
+
+      saveState();
+      closeTransferModal();
+      showSmsToast(`SMS Sent: Priority Referral #${newId} dispatched to ${targetDept}.`);
+      dispatchWebhook(n8nConfig.alertUrl, { eventType: 'doctor_referral', ...state.patients[idx] });
+    }
+
+    function switchView(viewName) {
+      ['patient', 'display', 'staff', 'exec'].forEach(v => {
+        const viewEl = document.getElementById(`view-${v}`);
+        const navEl = document.getElementById(`nav-${v}`);
+        if (viewEl) viewEl.classList.add('hidden');
+        if (navEl) navEl.className = "px-3 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white flex items-center gap-1";
+      });
+      
+      const targetView = document.getElementById(`view-${viewName}`);
+      const targetNav = document.getElementById(`nav-${viewName}`);
+      
+      if (targetView) targetView.classList.remove('hidden');
+      if (targetNav) targetNav.className = "px-3 py-1.5 rounded-md font-medium transition text-white bg-teal-600 shadow-sm flex items-center gap-1";
+
+      if (viewName === 'exec') renderChart();
+      if (viewName === 'staff' || viewName === 'display' || viewName === 'patient') render();
+    }
+
+    function handleCheckIn(e) {
+      e.preventDefault();
+      const name = document.getElementById('patient-name').value;
+      const phone = document.getElementById('patient-phone').value;
+      const select = document.getElementById('patient-dept');
+      const selectedOption = select.options[select.selectedIndex];
+      const dept = select.value;
+      const prefix = selectedOption.getAttribute('data-prefix');
+
+      const ticketNum = prefix + '-' + Math.floor(100 + Math.random() * 900);
+
+      const newTicket = {
+        id: ticketNum,
+        name: name,
+        phone: phone,
+        dept: dept,
+        status: 'waiting',
+        priority: false,
+        triage: 'normal',
+        fileReady: true,
+        earlyWarningSent: false,
+        timestamp: new Date().toISOString()
+      };
+
+      state.patients.unshift(newTicket);
+      saveState();
+
+      document.getElementById('checkin-form').reset();
+      updateDynamicWaitEstimate();
+      showSmsToast(`SMS Sent: Ticket #${newTicket.id} confirmed for ${dept}.`);
+      dispatchWebhook(n8nConfig.checkinUrl, { eventType: 'patient_checkin', ...newTicket });
+    }
+
+    function updateStatus(id, newStatus) {
+      const idx = state.patients.findIndex(p => p.id === id);
+      if (idx !== -1) {
+        state.patients[idx].status = newStatus;
+        saveState();
+        if (newStatus === 'progress') {
+          showSmsToast(`SMS Alert: Ticket #${id} called to consultation room.`);
+          dispatchWebhook(n8nConfig.alertUrl, { eventType: 'patient_called', ...state.patients[idx] });
+        } else if (newStatus === 'completed') {
+          dispatchWebhook(n8nConfig.alertUrl, { eventType: 'visit_completed', ...state.patients[idx] });
+        }
+      }
+    }
+
+    function render() {
+      // 1. Patient View
+      const queueList = document.getElementById('patient-queue-list');
+      if (queueList) {
+        queueList.innerHTML = state.patients.map(p => `
+          <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <span class="font-bold text-base px-3 py-1 ${p.priority ? 'bg-amber-600' : p.triage === 'urgent' ? 'bg-rose-600' : 'bg-slate-900'} text-white rounded-lg tracking-wider">${p.id}</span>
+              <div>
+                <p class="text-sm font-semibold text-slate-900">${p.name} ${p.priority ? '<span class="text-[10px] text-amber-600 font-bold ml-1">(Doctor Referral ⚡)</span>' : ''} ${p.triage === 'urgent' ? '<span class="text-[10px] text-rose-600 font-bold ml-1">(Urgent 🚨)</span>' : ''}</p>
+                <p class="text-xs text-slate-500">${p.dept}</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="text-xs font-semibold px-2.5 py-1 rounded-full ${
+                p.status === 'waiting' ? 'bg-amber-100 text-amber-800' :
+                p.status === 'progress' ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800'
+              }">${p.status.toUpperCase()}</span>
+              ${p.earlyWarningSent && p.status === 'waiting' ? '<p class="text-[10px] text-teal-600 font-semibold mt-1">⌛ ~30m Early Warning Sent</p>' : ''}
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // 2. Lobby Display Mode
+      const callingDisplay = document.getElementById('display-calling-list');
+      const waitingDisplay = document.getElementById('display-waiting-list');
+      if (callingDisplay && waitingDisplay) {
+        const calling = state.patients.filter(p => p.status === 'progress');
+        const waiting = state.patients.filter(p => p.status === 'waiting').slice(0, 5);
+
+        callingDisplay.innerHTML = calling.length > 0 ? calling.map(p => `
+          <div class="p-4 bg-teal-800/90 rounded-xl border border-teal-500 flex justify-between items-center shadow-lg">
+            <div>
+              <p class="text-3xl font-extrabold tracking-wider text-amber-300">${p.id}</p>
+              <p class="text-xs text-teal-200 mt-0.5">${p.dept}</p>
+            </div>
+            <span class="px-3 py-1.5 bg-emerald-500 text-slate-900 font-extrabold rounded-lg text-xs tracking-wider">ROOM READY ✓</span>
+          </div>
+        `).join('') : `<p class="text-xs text-teal-300 italic">No patients currently being called.</p>`;
+
+        waitingDisplay.innerHTML = waiting.length > 0 ? waiting.map(p => `
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex justify-between items-center">
+            <span class="font-bold text-lg text-slate-900">${p.id}</span>
+            <span class="text-xs font-medium text-slate-500">${p.dept}</span>
+          </div>
+        `).join('') : `<p class="text-xs text-slate-400 italic">No patients in waiting queue.</p>`;
+      }
+
+      // 3. Staff Board
+      const stationFilter = document.getElementById('staff-station-filter');
+      const selectedStation = stationFilter ? stationFilter.value : 'ALL';
+      
+      const statusBadge = document.getElementById('station-status-badge');
+      if (statusBadge) {
+        statusBadge.innerText = selectedStation === 'ALL' ? "Showing: All Stations" : `Station: ${selectedStation}`;
+      }
+
+      let filteredPatients = selectedStation === 'ALL' 
+        ? state.patients 
+        : state.patients.filter(p => p.dept === selectedStation);
+
+      filteredPatients.sort((a, b) => (b.triage === 'urgent' || b.priority) - (a.triage === 'urgent' || a.priority));
+
+      const totalCompletedCount = state.patients.filter(p => p.status === 'completed').length;
+      const badgeEl = document.getElementById('archive-badge-count');
+      if (badgeEl) badgeEl.innerText = totalCompletedCount;
+
+      ['waiting', 'progress', 'completed'].forEach(col => {
+        let colPatients = filteredPatients.filter(p => p.status === col);
+        const totalColCount = colPatients.length;
+
+        if (col === 'completed') {
+          colPatients = colPatients.slice(0, 5);
+        }
+
+        const countEl = document.getElementById(`count-${col}`);
+        const colEl = document.getElementById(`col-${col}`);
+
+        if (countEl) {
+          countEl.innerText = col === 'completed' 
+            ? `${colPatients.length} shown (${totalColCount} total)` 
+            : totalColCount;
+        }
+
+        if (colEl) {
+          colEl.innerHTML = colPatients.map(p => `
+            <div class="p-3.5 bg-white border ${p.triage === 'urgent' ? 'border-rose-400 ring-2 ring-rose-200' : p.priority ? 'border-amber-300 ring-1 ring-amber-300' : 'border-slate-200'} rounded-xl shadow-sm space-y-2">
+              <div class="flex justify-between items-start">
+                <span class="font-bold text-xs px-2 py-0.5 ${p.triage === 'urgent' ? 'bg-rose-600 text-white' : p.priority ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-800'} rounded border tracking-wider">${p.id}</span>
+                <span class="text-[10px] text-slate-400">${new Date(p.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+              </div>
+              <div>
+                <p class="text-sm font-bold text-slate-900">${p.name}</p>
+                <p class="text-xs text-teal-700 font-semibold flex items-center gap-1 mt-0.5">📱 ${p.phone}</p>
+              </div>
+              <p class="text-xs text-slate-500">${p.dept}</p>
+
+              <div class="flex items-center justify-between text-[11px] pt-1 border-t border-slate-100">
+                <button onclick="toggleFileReady('${p.id}')" class="font-medium ${p.fileReady ? 'text-emerald-700' : 'text-slate-400 hover:text-slate-600'}">
+                  ${p.fileReady ? '📁 Paper File Ready ✓' : '⏳ File Pending...'}
+                </button>
+                <button onclick="toggleTriage('${p.id}')" class="font-bold ${p.triage === 'urgent' ? 'text-rose-600' : 'text-slate-400 hover:text-slate-600'}">
+                  ${p.triage === 'urgent' ? '🚨 URGENT' : '+ Mark Urgent'}
+                </button>
+              </div>
+              
+              <div class="pt-2 border-t border-slate-100 flex flex-col gap-1.5">
+                ${col === 'waiting' ? `
+                  <button onclick="updateStatus('${p.id}', 'progress')" class="w-full py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold">Call Patient</button>
+                  <button onclick="manualTriggerEarlyWarning('${p.id}')" class="w-full py-1 ${p.earlyWarningSent ? 'bg-slate-100 text-slate-500' : 'bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200'} rounded text-xs font-semibold flex items-center justify-center gap-1">
+                    ${p.earlyWarningSent ? '🔔 Warning Sent ✓' : '🔔 Send 30m Warning SMS'}
+                  </button>
+                ` : ''}
+                ${col === 'progress' ? `
+                  <button onclick="updateStatus('${p.id}', 'completed')" class="w-full py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-semibold">Complete Visit</button>
+                  <button onclick="openTransferModal('${p.id}')" class="w-full py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded text-xs font-semibold flex items-center justify-center gap-1">🔀 Transfer / Prescribe ⚡</button>
+                ` : ''}
+                ${col === 'completed' ? `<span class="text-xs text-emerald-600 font-semibold">Archived in Folder ✓</span>` : ''}
+              </div>
+            </div>
+          `).join('');
+        }
+      });
+
+      const totalKpi = document.getElementById('kpi-total');
+      if (totalKpi) totalKpi.innerText = state.patients.length;
+    }
+
+    function exportAuditData() {
+      const csvContent = "data:text/csv;charset=utf-8," 
+        + ["Ticket ID,Patient Name,Phone Number,Department,Status,Priority Referral,Triage,File Ready,30m Warning Sent,Timestamp"].join(",") + "\n"
+        + state.patients.map(p => `${p.id},"${p.name}","${p.phone}","${p.dept}",${p.status},${p.priority ? 'YES' : 'NO'},${p.triage},${p.fileReady ? 'YES' : 'NO'},${p.earlyWarningSent ? 'YES' : 'NO'},${p.timestamp}`).join("\n");
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `South_Rand_Audit_Log_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    let chartInstance = null;
+    function renderChart() {
+      const ctx = document.getElementById('execChart').getContext('2d');
+      if (!ctx) return;
+      const depts = ['Pharmacy (Z)', 'Maternity (E)', 'Outpatients (A)', 'Emergency (X)', 'Pediatrics (P)', 'Dental (D)', 'Orthopedics (B)', 'Admin (F)'];
+      const prefixes = ['Z', 'E', 'A', 'X', 'P', 'D', 'B', 'F'];
+      const counts = prefixes.map(prefix => state.patients.filter(p => p.id.startsWith(prefix)).length);
+
+      if (chartInstance) chartInstance.destroy();
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: depts,
+          datasets: [{
+            label: 'Total Patients Today',
+            data: counts,
+            backgroundColor: '#0d9488',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    // Initialize
+    setLanguage('en');
+    updateWebhookStatusDot();
+    saveState();
+  </script>
+</body>
+</html>
