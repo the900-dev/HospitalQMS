@@ -6,7 +6,84 @@
   <title>South Rand Hospital - Patient & Quality Management System</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style><script>
+  <style>
+    // ==========================================
+// 1. Audio Chime Generator (Web Audio API)
+// ==========================================
+async function playNotificationChime() {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    
+    const ctx = new AudioContext();
+    
+    // Wake up audio context if browser put it to sleep
+    if (ctx.state === 'suspended') {
+      await ctx.resume();
+    }
+    
+    // First tone (A5)
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(880, ctx.currentTime);
+    gain1.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    
+    // Second tone (D6) - slight delay for a two-note chime
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(1174.66, ctx.currentTime + 0.15);
+    gain2.gain.setValueAtTime(0.4, ctx.currentTime + 0.15);
+    gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    
+    osc1.start(ctx.currentTime);
+    osc1.stop(ctx.currentTime + 0.4);
+    osc2.start(ctx.currentTime + 0.15);
+    osc2.stop(ctx.currentTime + 0.8);
+  } catch (err) {
+    console.warn("Audio Context playback prevented by browser:", err);
+  }
+}
+
+// ==========================================
+// 2. Updated Notification Banner Function
+// ==========================================
+function showNotificationBanner(message, type = 'info') {
+  const banner = document.getElementById('notificationBanner'); 
+  if (!banner) return;
+
+  // Play the audible chime instantly
+  playNotificationChime();
+
+  // Set message text and show banner
+  banner.textContent = message;
+  banner.style.display = 'block';
+
+  // Keep banner visible for 12 seconds so patients have time to read it
+  setTimeout(() => {
+    banner.style.display = 'none';
+  }, 12000);
+}
+
+// ==========================================
+// 3. 30-Minute Waiting Room Warning Alert
+// ==========================================
+function checkQueueWarning(estimatedMinutesRemaining) {
+  // Triggers alert if wait time is between 1 and 30 minutes
+  if (estimatedMinutesRemaining > 0 && estimatedMinutesRemaining <= 30) {
+    showNotificationBanner(
+      "⚠️ Notice: You have less than 30 minutes waiting time. Please make your way back to the waiting room.",
+      "warning"
+    );
+  }
+}
+    <script>
   // 1. Native browser audio chime generator (No external MP3 files needed)
   function playNotificationChime() {
     try {
