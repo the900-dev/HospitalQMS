@@ -550,20 +550,50 @@ function saveState() {
 }
 
 function checkAndTrigger30MinWarnings() {
+  // Loop through every department
   const depts = [...new Set(state.patients.map(p => p.dept))];
+  
   depts.forEach(dept => {
+    // Get all waiting patients in this department, ordered by arrival/position
     const waitingInDept = state.patients.filter(p => p.dept === dept && p.status === 'waiting');
-    waitingInDept.forEach((p, idx) => {
-      if (idx < 3 && !p.earlyWarningSent) {
+    
+    // Find the average minutes per person for this department from the dropdown config
+    const select = document.getElementById('patient-dept');
+    let avgMinutes = 10; // default fallback
+    if (select) {
+      for (let option of select.options) {
+        if (option.value === dept) {
+          avgMinutes = parseInt(option.getAttribute('data-avg')) || 10;
+          break;
+        }
+      }
+    }
+
+    // Evaluate each patient's actual real-time wait based on who is physically ahead of them
+    waitingInDept.forEach((p, index) => {
+      // 'index' represents exactly how many people are waiting ahead of this patient in this department queue!
+      const estimatedMinutesRemaining = index * avgMinutes;
+
+      // Check if their calculated wait time has dropped under 30 minutes (and greater than 0)
+      if (estimatedMinutesRemaining > 0 && estimatedMinutesRemaining <= 30 && !p.earlyWarningSent) {
         p.earlyWarningSent = true;
-        showSmsToast(`30-MIN WARNING SMS: Ticket #${p.id} (${p.name}), please return to ${p.dept} waiting area!`);
-        checkQueueWarning(25); // Trigger audible chime and persistent banner notification
-        dispatchWebhook(n8nConfig.alertUrl, { eventType: '30_min_warning', ...p });
+        saveState();
+        
+        // If this is the current user or running instance matching, trigger the notification
+        showSmsToast(`30-MIN WARNING SMS: Ticket #${p.id} (${p.name}), wait time is ~${estimatedMinutesRemaining} mins. Return to ${dept} waiting area!`);
+        
+        // Trigger the audio chime & persistent banner notification
+        showNotificationBanner(`⚠️ Notice (Ticket #${p.id}): Your wait time is down to ~${estimatedMinutesRemaining} mins. Please make your way back to the waiting room.`);
+        
+        dispatchWebhook(n8nConfig.alertUrl, { 
+          eventType: '30_min_warning', 
+          estimatedWait: estimatedMinutesRemaining,
+          ...p 
+        });
       }
     });
   });
 }
-
 function manualTriggerEarlyWarning(id) {
   const idx = state.patients.findIndex(p => p.id === id);
   if (idx !== -1) {
