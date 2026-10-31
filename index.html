@@ -72,7 +72,6 @@ body { font-family: 'Inter', sans-serif; }
         <button id="lang-btn-af" onclick="setLanguage('af')" class="px-2.5 py-1 bg-slate-700 text-slate-200 hover:bg-slate-600 rounded font-bold">AFR</button>
       </div>
     </div>
-
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Check-In Form (Fully responsive container) -->
       <div class="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm w-full max-w-md mx-auto lg:max-w-none">
@@ -83,7 +82,7 @@ body { font-family: 'Inter', sans-serif; }
         <form id="checkin-form" onsubmit="handleCheckIn(event)" class="space-y-4">
           <div>
             <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1" id="lbl-name">Full Name</label>
-            <input type="text" id="patient-name" required placeholder="e.g. Bryan Judah" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none transition">
+            <input type="text" id="patient-name" required placeholder="e.g. Brian Judah" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none transition">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1" id="lbl-phone">Mobile Number (SMS updates)</label>
@@ -120,7 +119,6 @@ body { font-family: 'Inter', sans-serif; }
           <button type="submit" id="btn-submit" class="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg text-sm transition shadow-md hover:shadow-lg">Get Queue Ticket</button>
         </form>
       </div>
-
       <!-- Live Queue Display -->
       <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
         <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
@@ -134,7 +132,6 @@ body { font-family: 'Inter', sans-serif; }
       </div>
     </div>
   </section>
-
   <!-- VIEW 2: LOBBY TV DISPLAY MODE -->
   <section id="view-display" class="hidden space-y-6">
     <div class="bg-slate-900 text-white rounded-2xl p-6 shadow-2xl border border-slate-800 text-center">
@@ -156,7 +153,6 @@ body { font-family: 'Inter', sans-serif; }
       </div>
     </div>
   </section>
-
   <!-- VIEW 3: STAFF BOARD (RESTRICTED) -->
   <section id="view-staff" class="hidden space-y-6">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
@@ -174,7 +170,6 @@ body { font-family: 'Inter', sans-serif; }
         <button onclick="lockAdminSession()" class="px-3 py-2 bg-slate-800 text-white rounded-lg text-xs font-semibold hover:bg-slate-700">Lock Session</button>
       </div>
     </div>
-
     <!-- Station Filter Bar -->
     <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
       <div class="flex items-center space-x-3 w-full sm:w-auto">
@@ -193,7 +188,6 @@ body { font-family: 'Inter', sans-serif; }
       </div>
       <div id="station-status-badge" class="text-xs px-3 py-1 bg-teal-50 text-teal-800 border border-teal-200 rounded-full font-semibold">Showing: All Stations</div>
     </div>
-
     <!-- Kanban Columns -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div class="bg-slate-100/70 p-4 rounded-xl border border-slate-200">
@@ -217,7 +211,6 @@ body { font-family: 'Inter', sans-serif; }
       </div>
     </div>
   </section>
-
   <!-- VIEW 4: EXEC ANALYTICS (RESTRICTED) -->
   <section id="view-exec" class="hidden space-y-6">
     <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
@@ -471,11 +464,9 @@ function showNotificationBanner(message) {
   const banner = document.getElementById('notificationBanner');
   const textEl = document.getElementById('notification-banner-text');
   if (!banner || !textEl) return;
-
   textEl.innerText = message;
   banner.classList.remove('hidden', '-translate-y-24');
   banner.classList.add('translate-y-0');
-
   setTimeout(() => {
     banner.classList.remove('translate-y-0');
     banner.classList.add('-translate-y-24');
@@ -542,57 +533,48 @@ function showSmsToast(msg, title = "Automated SMS Gateway Triggered") {
   }, 4000);
 }
 
+// Save state without auto-triggering check-in warnings
 function saveState() {
   localStorage.setItem('sr_patients_v12', JSON.stringify(state.patients));
   render();
   updateDynamicWaitEstimate();
 }
 
-function checkAndTrigger30MinWarnings() {
-  // Loop through every department
-  const depts = [...new Set(state.patients.map(p => p.dept))];
-  
-  depts.forEach(dept => {
-    // Get all waiting patients in this department, ordered by arrival/position
-    const waitingInDept = state.patients.filter(p => p.dept === dept && p.status === 'waiting');
-    
-    // Find the average minutes per person for this department from the dropdown config
-    const select = document.getElementById('patient-dept');
-    let avgMinutes = 10; // default fallback
-    if (select) {
-      for (let option of select.options) {
-        if (option.value === dept) {
-          avgMinutes = parseInt(option.getAttribute('data-avg')) || 10;
-          break;
-        }
+// 30-Minute Warning Triggered Exclusively by Staff "Call Patient" Action via checkNextInLineWarnings()
+function checkNextInLineWarnings(dept) {
+  const waitingInDept = state.patients.filter(p => p.dept === dept && p.status === 'waiting');
+  if (waitingInDept.length === 0) return;
+
+  const select = document.getElementById('patient-dept');
+  let avgMinutes = 10;
+  if (select) {
+    for (let option of select.options) {
+      if (option.value === dept) {
+        avgMinutes = parseInt(option.getAttribute('data-avg')) || 10;
+        break;
       }
     }
+  }
 
-    // Evaluate each patient's actual real-time wait based on who is physically ahead of them
-    waitingInDept.forEach((p, index) => {
-      // 'index' represents exactly how many people are waiting ahead of this patient in this department queue!
-      const estimatedMinutesRemaining = index * avgMinutes;
+  waitingInDept.forEach((nextPatient, index) => {
+    const estimatedMinutesRemaining = index * avgMinutes;
 
-      // Check if their calculated wait time has dropped under 30 minutes (and greater than 0)
-      if (estimatedMinutesRemaining > 0 && estimatedMinutesRemaining <= 30 && !p.earlyWarningSent) {
-        p.earlyWarningSent = true;
-        saveState();
-        
-        // If this is the current user or running instance matching, trigger the notification
-        showSmsToast(`30-MIN WARNING SMS: Ticket #${p.id} (${p.name}), wait time is ~${estimatedMinutesRemaining} mins. Return to ${dept} waiting area!`);
-        
-        // Trigger the audio chime & persistent banner notification
-        showNotificationBanner(`⚠️ Notice (Ticket #${p.id}): Your wait time is down to ~${estimatedMinutesRemaining} mins. Please make your way back to the waiting room.`);
-        
-        dispatchWebhook(n8nConfig.alertUrl, { 
-          eventType: '30_min_warning', 
-          estimatedWait: estimatedMinutesRemaining,
-          ...p 
-        });
-      }
-    });
+    if (estimatedMinutesRemaining <= 30 && !nextPatient.earlyWarningSent) {
+      nextPatient.earlyWarningSent = true;
+      localStorage.setItem('sr_patients_v12', JSON.stringify(state.patients));
+      
+      showSmsToast(`30-MIN WARNING SMS: Ticket #${nextPatient.id} (${nextPatient.name}), wait time is now ~${estimatedMinutesRemaining} mins. Please return to waiting area!`);
+      showNotificationBanner(`⚠️ Notice (Ticket #${nextPatient.id}): Your wait time is down to ~${estimatedMinutesRemaining} mins. Please make your way back to the waiting room.`);
+      
+      dispatchWebhook(n8nConfig.alertUrl, { 
+        eventType: '30_min_warning', 
+        estimatedWait: estimatedMinutesRemaining,
+        ...nextPatient 
+      });
+    }
   });
 }
+
 function manualTriggerEarlyWarning(id) {
   const idx = state.patients.findIndex(p => p.id === id);
   if (idx !== -1) {
@@ -815,94 +797,19 @@ function updateStatus(id, newStatus) {
     const calledPatient = state.patients[idx];
     calledPatient.status = newStatus;
     saveState();
-
     if (newStatus === 'progress') {
-      // 1. Alert the patient who is actually being called right now
       showSmsToast(`SMS Alert: Ticket #${id} called to consultation room.`);
       showNotificationBanner(`🎉 Ticket #${id} (${calledPatient.name}) has been called! Please proceed to room.`);
       dispatchWebhook(n8nConfig.alertUrl, { eventType: 'patient_called', ...calledPatient });
-
-      // 2. NOW check the patients remaining in this exact department queue!
-      // Because this patient was just called, everyone behind them moved up line.
+      
+      // Trigger warning check for the next person in line when staff calls this patient
       checkNextInLineWarnings(calledPatient.dept);
-
     } else if (newStatus === 'completed') {
       dispatchWebhook(n8nConfig.alertUrl, { eventType: 'visit_completed', ...calledPatient });
     }
   }
 }
-<script>
-  // ... (Your other JS code, state, and event listeners) ...
 
-  // 1. Updated saveState (no longer fires automatic check-in warnings)
-  function saveState() {
-    localStorage.setItem('sr_patients_v12', JSON.stringify(state.patients));
-    render();
-    updateDynamicWaitEstimate();
-  }
-
-  // 2. Updated updateStatus (calls checkNextInLineWarnings when "Call Patient" is clicked)
-  function updateStatus(id, newStatus) {
-    const idx = state.patients.findIndex(p => p.id === id);
-    if (idx !== -1) {
-      const calledPatient = state.patients[idx];
-      calledPatient.status = newStatus;
-      saveState();
-
-      if (newStatus === 'progress') {
-        showSmsToast(`SMS Alert: Ticket #${id} called to consultation room.`);
-        showNotificationBanner(`🎉 Ticket #${id} (${calledPatient.name}) has been called! Please proceed to room.`);
-        dispatchWebhook(n8nConfig.alertUrl, { eventType: 'patient_called', ...calledPatient });
-
-        // Trigger warning check for the remaining queue
-        checkNextInLineWarnings(calledPatient.dept);
-
-      } else if (newStatus === 'completed') {
-        dispatchWebhook(n8nConfig.alertUrl, { eventType: 'visit_completed', ...calledPatient });
-      }
-    }
-  }
-
-  // 3. NEW HELPER FUNCTION (Place it right here!)
-  function checkNextInLineWarnings(dept) {
-    const waitingInDept = state.patients.filter(p => p.dept === dept && p.status === 'waiting');
-    if (waitingInDept.length === 0) return;
-
-    const select = document.getElementById('patient-dept');
-    let avgMinutes = 10;
-    if (select) {
-      for (let option of select.options) {
-        if (option.value === dept) {
-          avgMinutes = parseInt(option.getAttribute('data-avg')) || 10;
-          break;
-        }
-      }
-    }
-
-    waitingInDept.forEach((nextPatient, index) => {
-      const estimatedMinutesRemaining = index * avgMinutes;
-
-      if (estimatedMinutesRemaining <= 30 && !nextPatient.earlyWarningSent) {
-        nextPatient.earlyWarningSent = true;
-        localStorage.setItem('sr_patients_v12', JSON.stringify(state.patients));
-        
-        showSmsToast(`30-MIN WARNING SMS: Ticket #${nextPatient.id} (${nextPatient.name}), wait time is now ~${estimatedMinutesRemaining} mins. Please return to waiting area!`);
-        showNotificationBanner(`⚠️ Notice (Ticket #${nextPatient.id}): Your wait time is down to ~${estimatedMinutesRemaining} mins. Please make your way back to the waiting room.`);
-        
-        dispatchWebhook(n8nConfig.alertUrl, { 
-          eventType: '30_min_warning', 
-          estimatedWait: estimatedMinutesRemaining,
-          ...nextPatient 
-        });
-      }
-    });
-  }
-
-  // Initialize
-  setLanguage('en');
-  updateWebhookStatusDot();
-  saveState();
-</script>
 // WEB PUSH NOTIFICATION HELPER
 const PUBLIC_VAPID_KEY = 'BCUQOxMCumAoqn_8QLs5YvV7OrDLH9Ph8gMkfUpUY84CbGCIE5vLYar36JAxPbYjfm0BEpUDPngqPmjzpSJBGaE';
 
@@ -972,7 +879,6 @@ function render() {
         <span class="px-3 py-1.5 bg-emerald-500 text-slate-900 font-extrabold rounded-lg text-xs tracking-wider">ROOM READY</span>
       </div>
     `).join("") : `<p class="text-xs text-teal-300 italic">No patients currently being called.</p>`;
-
     waitingDisplay.innerHTML = waiting.length > 0 ? waiting.map(p => `
       <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex justify-between items-center">
         <span class="font-bold text-lg text-slate-900">${p.id}</span>
