@@ -544,7 +544,6 @@ function showSmsToast(msg, title = "Automated SMS Gateway Triggered") {
 
 function saveState() {
   localStorage.setItem('sr_patients_v12', JSON.stringify(state.patients));
-  checkAndTrigger30MinWarnings();
   render();
   updateDynamicWaitEstimate();
 }
@@ -813,18 +812,97 @@ subscribeUserToPush();
 function updateStatus(id, newStatus) {
   const idx = state.patients.findIndex(p => p.id === id);
   if (idx !== -1) {
-    state.patients[idx].status = newStatus;
+    const calledPatient = state.patients[idx];
+    calledPatient.status = newStatus;
     saveState();
+
     if (newStatus === 'progress') {
+      // 1. Alert the patient who is actually being called right now
       showSmsToast(`SMS Alert: Ticket #${id} called to consultation room.`);
-      showNotificationBanner(`🎉 Ticket #${id} has been called! Please proceed to your consultation room.`);
-      dispatchWebhook(n8nConfig.alertUrl, { eventType: 'patient_called', ...state.patients[idx] });
+      showNotificationBanner(`🎉 Ticket #${id} (${calledPatient.name}) has been called! Please proceed to room.`);
+      dispatchWebhook(n8nConfig.alertUrl, { eventType: 'patient_called', ...calledPatient });
+
+      // 2. NOW check the patients remaining in this exact department queue!
+      // Because this patient was just called, everyone behind them moved up line.
+      checkNextInLineWarnings(calledPatient.dept);
+
     } else if (newStatus === 'completed') {
-      dispatchWebhook(n8nConfig.alertUrl, { eventType: 'visit_completed', ...state.patients[idx] });
+      dispatchWebhook(n8nConfig.alertUrl, { eventType: 'visit_completed', ...calledPatient });
     }
   }
 }
+<script>
+  // ... (Your other JS code, state, and event listeners) ...
 
+  // 1. Updated saveState (no longer fires automatic check-in warnings)
+  function saveState() {
+    localStorage.setItem('sr_patients_v12', JSON.stringify(state.patients));
+    render();
+    updateDynamicWaitEstimate();
+  }
+
+  // 2. Updated updateStatus (calls checkNextInLineWarnings when "Call Patient" is clicked)
+  function updateStatus(id, newStatus) {
+    const idx = state.patients.findIndex(p => p.id === id);
+    if (idx !== -1) {
+      const calledPatient = state.patients[idx];
+      calledPatient.status = newStatus;
+      saveState();
+
+      if (newStatus === 'progress') {
+        showSmsToast(`SMS Alert: Ticket #${id} called to consultation room.`);
+        showNotificationBanner(`🎉 Ticket #${id} (${calledPatient.name}) has been called! Please proceed to room.`);
+        dispatchWebhook(n8nConfig.alertUrl, { eventType: 'patient_called', ...calledPatient });
+
+        // Trigger warning check for the remaining queue
+        checkNextInLineWarnings(calledPatient.dept);
+
+      } else if (newStatus === 'completed') {
+        dispatchWebhook(n8nConfig.alertUrl, { eventType: 'visit_completed', ...calledPatient });
+      }
+    }
+  }
+
+  // 3. NEW HELPER FUNCTION (Place it right here!)
+  function checkNextInLineWarnings(dept) {
+    const waitingInDept = state.patients.filter(p => p.dept === dept && p.status === 'waiting');
+    if (waitingInDept.length === 0) return;
+
+    const select = document.getElementById('patient-dept');
+    let avgMinutes = 10;
+    if (select) {
+      for (let option of select.options) {
+        if (option.value === dept) {
+          avgMinutes = parseInt(option.getAttribute('data-avg')) || 10;
+          break;
+        }
+      }
+    }
+
+    waitingInDept.forEach((nextPatient, index) => {
+      const estimatedMinutesRemaining = index * avgMinutes;
+
+      if (estimatedMinutesRemaining <= 30 && !nextPatient.earlyWarningSent) {
+        nextPatient.earlyWarningSent = true;
+        localStorage.setItem('sr_patients_v12', JSON.stringify(state.patients));
+        
+        showSmsToast(`30-MIN WARNING SMS: Ticket #${nextPatient.id} (${nextPatient.name}), wait time is now ~${estimatedMinutesRemaining} mins. Please return to waiting area!`);
+        showNotificationBanner(`⚠️ Notice (Ticket #${nextPatient.id}): Your wait time is down to ~${estimatedMinutesRemaining} mins. Please make your way back to the waiting room.`);
+        
+        dispatchWebhook(n8nConfig.alertUrl, { 
+          eventType: '30_min_warning', 
+          estimatedWait: estimatedMinutesRemaining,
+          ...nextPatient 
+        });
+      }
+    });
+  }
+
+  // Initialize
+  setLanguage('en');
+  updateWebhookStatusDot();
+  saveState();
+</script>
 // WEB PUSH NOTIFICATION HELPER
 const PUBLIC_VAPID_KEY = 'BCUQOxMCumAoqn_8QLs5YvV7OrDLH9Ph8gMkfUpUY84CbGCIE5vLYar36JAxPbYjfm0BEpUDPngqPmjzpSJBGaE';
 
