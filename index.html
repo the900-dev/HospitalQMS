@@ -6,52 +6,6 @@
 <title>South Rand Hospital - Patient & Quality Management System</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>// Sync queue data from n8n central server every 3 seconds
-async function syncQueueFromServer() {
-  if (!n8nConfig.checkinUrl) return; // Skip if webhook isn't configured
-  
-  try {
-    const response = await fetch(n8nConfig.checkinUrl, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' }
-    });
-    
-    if (response.ok) {
-      const serverData = await response.json();
-      // If server returns a valid patient array, update local state and re-render
-      if (serverData && Array.isArray(serverData.patients)) {
-        // Only update if data has changed to avoid overriding local typing loops
-        if (JSON.stringify(serverData.patients) !== JSON.stringify(state.patients)) {
-          state.patients = serverData.patients;
-          localStorage.setItem('sr_patients_v12', JSON.stringify(state.patients));
-          render();
-          updateDynamicWaitEstimate();
-        }
-      }
-    }
-  } catch (err) {
-    console.warn("Sync fallback: Running on local state.", err);
-  }
-}
-
-// Start polling every 3 seconds once the page loads
-setInterval(syncQueueFromServer, 3000); </script>
-
-  <script>// Place dispatchAndUpdateServer right here with your other functions
-async function dispatchAndUpdateServer(updatedPatientsArray) {
-  state.patients = updatedPatientsArray;
-  saveState(); // Saves locally and re-renders
-
-  // Push the new master state to n8n so the other device syncs it
-  if (n8nConfig.checkinUrl) {
-    await dispatchWebhook(n8nConfig.checkinUrl, {
-      action: 'sync_queue',
-      patients: state.patients,
-      timestamp: new Date().toISOString()
-    });
-  }
-}</script>
-  
 <style>
 @import url('https://fonts.googleapis.com/css?family=Inter:wght@300;400;500;600;700&display=swap');
 body { font-family: 'Inter', sans-serif; }
@@ -409,11 +363,11 @@ body { font-family: 'Inter', sans-serif; }
     <div class="space-y-3 text-left">
       <div>
         <label class="block text-[11px] font-semibold text-slate-600 uppercase mb-1">Check-In Webhook URL</label>
-        <input type="url" id="hook-checkin" placeholder="https://your-n8n.com/webhook/checkin" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-teal-500">
+        <input type="url" id="hook-checkin" placeholder="https://your-n8n.com/webhook/hospital-queue" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-teal-500">
       </div>
       <div>
         <label class="block text-[11px] font-semibold text-slate-600 uppercase mb-1">Queue / Alert Webhook URL</label>
-        <input type="url" id="hook-alert" placeholder="https://your-n8n.com/webhook/queue-alert" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-teal-500">
+        <input type="url" id="hook-alert" placeholder="https://your-n8n.com/webhook/hospital-queue" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-teal-500">
       </div>
     </div>
     <div class="flex gap-2 pt-2">
@@ -579,18 +533,60 @@ function showSmsToast(msg, title = "Automated SMS Gateway Triggered") {
   }, 4000);
 }
 
-// Save state without auto-triggering check-in warnings
+// Local state persistence and UI refresh
 function saveState() {
   localStorage.setItem('sr_patients_v12', JSON.stringify(state.patients));
   render();
   updateDynamicWaitEstimate();
 }
 
+// Centralized sync dispatcher to push updates to n8n server across devices
+async function dispatchAndUpdateServer(updatedPatientsArray) {
+  state.patients = updatedPatientsArray;
+  saveState(); // Saves locally and re-renders
+
+  if (n8nConfig.checkinUrl) {
+    await dispatchWebhook(n8nConfig.checkinUrl, {
+      action: 'sync_queue',
+      patients: state.patients,
+      timestamp: new Date().toISOString()
+    });
+  }
+}
+
+// Polling function to sync queue data from n8n central server every 3 seconds
+async function syncQueueFromServer() {
+  if (!n8nConfig.checkinUrl) return;
+  
+  try {
+    const response = await fetch(n8nConfig.checkinUrl, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    if (response.ok) {
+      const serverData = await response.json();
+      if (serverData && Array.isArray(serverData.patients)) {
+        if (JSON.stringify(serverData.patients) !== JSON.stringify(state.patients)) {
+          state.patients = serverData.patients;
+          localStorage.setItem('sr_patients_v12', JSON.stringify(state.patients));
+          render();
+          updateDynamicWaitEstimate();
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("Sync fallback: Running on local state.", err);
+  }
+}
+
+// Start polling every 3 seconds
+setInterval(syncQueueFromServer, 3000);
+
 // 30-Minute Warning Triggered Exclusively by Staff "Call Patient" Action via checkNextInLineWarnings()
 function checkNextInLineWarnings(dept) {
   const waitingInDept = state.patients.filter(p => p.dept === dept && p.status === 'waiting');
   if (waitingInDept.length === 0) return;
-
   const select = document.getElementById('patient-dept');
   let avgMinutes = 10;
   if (select) {
@@ -601,13 +597,11 @@ function checkNextInLineWarnings(dept) {
       }
     }
   }
-
   waitingInDept.forEach((nextPatient, index) => {
     const estimatedMinutesRemaining = index * avgMinutes;
-
     if (estimatedMinutesRemaining <= 30 && !nextPatient.earlyWarningSent) {
       nextPatient.earlyWarningSent = true;
-      localStorage.setItem('sr_patients_v12', JSON.stringify(state.patients));
+      dispatchAndUpdateServer(state.patients);
       
       showSmsToast(`30-MIN WARNING SMS: Ticket #${nextPatient.id} (${nextPatient.name}), wait time is now ~${estimatedMinutesRemaining} mins. Please return to waiting area!`);
       showNotificationBanner(`⚠️ Notice (Ticket #${nextPatient.id}): Your wait time is down to ~${estimatedMinutesRemaining} mins. Please make your way back to the waiting room.`);
@@ -625,7 +619,7 @@ function manualTriggerEarlyWarning(id) {
   const idx = state.patients.findIndex(p => p.id === id);
   if (idx !== -1) {
     state.patients[idx].earlyWarningSent = true;
-    saveState();
+    dispatchAndUpdateServer(state.patients);
     showSmsToast(`MANUAL 30-MIN WARNING SMS: Ticket #${id} notified.`);
     checkQueueWarning(20);
     dispatchWebhook(n8nConfig.alertUrl, { eventType: 'manual_30_min_warning', ...state.patients[idx] });
@@ -648,7 +642,7 @@ function toggleTriage(id) {
   const idx = state.patients.findIndex(p => p.id === id);
   if (idx !== -1) {
     state.patients[idx].triage = state.patients[idx].triage === 'urgent' ? 'normal' : 'urgent';
-    saveState();
+    dispatchAndUpdateServer(state.patients);
   }
 }
 
@@ -656,7 +650,7 @@ function toggleFileReady(id) {
   const idx = state.patients.findIndex(p => p.id === id);
   if (idx !== -1) {
     state.patients[idx].fileReady = !state.patients[idx].fileReady;
-    saveState();
+    dispatchAndUpdateServer(state.patients);
   }
 }
 
@@ -785,7 +779,7 @@ function executeTransfer() {
   state.patients[idx].priority = true;
   state.patients[idx].earlyWarningSent = false;
   state.patients[idx].timestamp = new Date().toISOString();
-  saveState();
+  dispatchAndUpdateServer(state.patients);
   closeTransferModal();
   showSmsToast(`SMS Sent: Priority Referral #${newId} dispatched to ${targetDept}.`);
   dispatchWebhook(n8nConfig.alertUrl, { eventType: 'doctor_referral', ...state.patients[idx] });
@@ -828,7 +822,7 @@ function handleCheckIn(e) {
     timestamp: new Date().toISOString()
   };
   state.patients.unshift(newTicket);
-  saveState();
+  dispatchAndUpdateServer(state.patients);
   document.getElementById('checkin-form').reset();
   updateDynamicWaitEstimate();
   showSmsToast(`SMS Sent: Ticket #${newTicket.id} confirmed for ${dept}.`);
@@ -842,7 +836,8 @@ function updateStatus(id, newStatus) {
   if (idx !== -1) {
     const calledPatient = state.patients[idx];
     calledPatient.status = newStatus;
-    saveState();
+    dispatchAndUpdateServer(state.patients);
+    
     if (newStatus === 'progress') {
       showSmsToast(`SMS Alert: Ticket #${id} called to consultation room.`);
       showNotificationBanner(`🎉 Ticket #${id} (${calledPatient.name}) has been called! Please proceed to room.`);
