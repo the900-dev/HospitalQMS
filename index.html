@@ -37,6 +37,20 @@ async function syncQueueFromServer() {
 // Start polling every 3 seconds once the page loads
 setInterval(syncQueueFromServer, 3000); </script>
 
+  <script>// Place dispatchAndUpdateServer right here with your other functions
+async function dispatchAndUpdateServer(updatedPatientsArray) {
+  state.patients = updatedPatientsArray;
+  saveState(); // Saves locally and re-renders
+
+  // Push the new master state to n8n so the other device syncs it
+  if (n8nConfig.checkinUrl) {
+    await dispatchWebhook(n8nConfig.checkinUrl, {
+      action: 'sync_queue',
+      patients: state.patients,
+      timestamp: new Date().toISOString()
+    });
+  }
+}</script>
   
 <style>
 @import url('https://fonts.googleapis.com/css?family=Inter:wght@300;400;500;600;700&display=swap');
