@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>South Rand Hospital - Patient & Quality Management System</title>
+<title>Hospital Patient & Quality Management System</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
@@ -36,9 +36,9 @@ body { font-family: 'Inter', sans-serif; }
 <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 shadow-md">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
     <div class="flex items-center space-x-3">
-      <div class="w-10 h-10 rounded-lg bg-teal-600 flex items-center justify-center font-bold text-xl tracking-wider shadow">SR</div>
+      <div class="w-10 h-10 rounded-lg bg-teal-600 flex items-center justify-center font-bold text-xl tracking-wider shadow">HM</div>
       <div>
-        <h1 class="font-bold text-lg leading-none tracking-tight">South Rand Hospital</h1>
+        <h1 class="font-bold text-lg leading-none tracking-tight">Hospital Management</h1>
         <p class="text-xs text-teal-400 mt-0.5 font-medium">Digital Queue & Patient Care Portal</p>
       </div>
     </div>
@@ -57,7 +57,7 @@ body { font-family: 'Inter', sans-serif; }
     <div class="bg-gradient-to-r from-teal-800 to-slate-900 rounded-2xl p-6 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div class="max-w-xl">
         <span class="inline-block px-3 py-1 bg-teal-500/20 text-teal-300 border border-teal-500/30 rounded-full text-xs font-semibold mb-3">Self-Service Check-In</span>
-        <h2 class="text-2xl sm:text-3xl font-bold tracking-tight" id="lbl-welcome">Welcome to South Rand Hospital</h2>
+        <h2 class="text-2xl sm:text-3xl font-bold tracking-tight" id="lbl-welcome">Welcome to Patient Care Portal</h2>
         <p class="text-slate-300 text-sm mt-2" id="lbl-sub">Get your queue ticket online, see real-time estimated wait times based on active queues, and receive live updates.</p>
       </div>
       <!-- Language Switcher -->
@@ -97,11 +97,11 @@ body { font-family: 'Inter', sans-serif; }
               <option value="Folder & Patient File Admin" data-prefix="F" data-avg="5">Folder & Patient File Admin (F-Ticket)</option>
             </select>
           </div>
-          <!-- POPIA Compliance Checkbox -->
+          <!-- Privacy Compliance Checkbox -->
           <div class="flex items-start space-x-2 pt-1">
             <input type="checkbox" id="popia-consent" required class="mt-0.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500">
             <label for="popia-consent" class="text-[11px] text-slate-500 leading-tight">
-              I consent to South Rand Hospital processing my mobile number and visit data in compliance with <strong>POPIA</strong> regulations for queue updates.
+              I consent to hospital data processing of my mobile number and visit records in compliance with privacy regulations.
             </label>
           </div>
           <!-- Dynamic Estimated Time Box -->
@@ -132,7 +132,7 @@ body { font-family: 'Inter', sans-serif; }
   <section id="view-display" class="hidden space-y-6">
     <div class="bg-slate-900 text-white rounded-2xl p-6 shadow-2xl border border-slate-800 text-center">
       <div class="inline-block px-4 py-1.5 bg-teal-500/20 text-teal-400 border border-teal-500/30 rounded-full text-xs font-bold uppercase tracking-widest mb-2">Live Waiting Room Monitor</div>
-      <h2 class="text-3xl font-extrabold tracking-tight">South Rand Hospital - Patient Call Board</h2>
+      <h2 class="text-3xl font-extrabold tracking-tight">Patient Call Board</h2>
       <p class="text-slate-400 text-sm mt-1">Please proceed to your designated room when your ticket number flashes below.</p>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -249,7 +249,7 @@ body { font-family: 'Inter', sans-serif; }
   </section>
 </main>
 
-<!-- AI ASSISTANT & SUPPORT CHATBOT WIDGET -->
+<!-- MEDORA AI ASSISTANT & SUPPORT CHATBOT WIDGET -->
 <div id="chatbot-container" class="fixed bottom-5 right-5 z-50">
   <!-- Floating Chat Button -->
   <button id="chatbot-toggle-btn" onclick="toggleChatbot()" class="bg-teal-600 hover:bg-teal-700 text-white p-3.5 rounded-full shadow-2xl flex items-center justify-center transition transform hover:scale-105 border-2 border-teal-400">
@@ -263,9 +263,9 @@ body { font-family: 'Inter', sans-serif; }
     <!-- Header -->
     <div class="bg-slate-900 text-white p-3.5 flex justify-between items-center border-b border-slate-800">
       <div class="flex items-center space-x-2.5">
-        <div class="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center font-bold text-xs">AI</div>
+        <div class="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center font-bold text-xs">M</div>
         <div>
-          <h4 class="font-bold text-xs text-white">South Rand AI Support</h4>
+          <h4 class="font-bold text-xs text-white">Medora AI Support</h4>
           <p class="text-[10px] text-teal-400 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Live Assistance & Complaints</p>
         </div>
       </div>
@@ -278,7 +278,7 @@ body { font-family: 'Inter', sans-serif; }
     <!-- Standard Chat Messages Box -->
     <div id="chat-messages" class="flex-1 p-3 space-y-3 overflow-y-auto text-xs bg-slate-50">
       <div class="bg-teal-50 border border-teal-200 text-slate-800 p-2.5 rounded-xl rounded-tl-none max-w-[85%] space-y-1">
-        <p class="font-bold text-teal-900 text-[11px]">Hello! I am your South Rand AI Assistant 👋</p>
+        <p class="font-bold text-teal-900 text-[11px]">Hello! I am Medora, your AI Support Assistant 👋</p>
         <p class="text-slate-600">How can I help you today? You can ask about ticket prefixes, wait times, or report an issue directly to staff.</p>
       </div>
     </div>
@@ -287,12 +287,12 @@ body { font-family: 'Inter', sans-serif; }
     <div id="chat-chips" class="p-2 bg-white border-t border-slate-100 flex gap-1.5 overflow-x-auto whitespace-nowrap text-[10px]">
       <button onclick="sendQuickChip('How do I check in?')" class="px-2.5 py-1 bg-slate-100 hover:bg-teal-50 hover:text-teal-700 text-slate-600 rounded-full font-medium border border-slate-200">How to Check-In</button>
       <button onclick="sendQuickChip('What do ticket letters mean?')" class="px-2.5 py-1 bg-slate-100 hover:bg-teal-50 hover:text-teal-700 text-slate-600 rounded-full font-medium border border-slate-200">Ticket Prefixes</button>
-      <button onclick="sendQuickChip('Is my phone number private?')" class="px-2.5 py-1 bg-slate-100 hover:bg-teal-50 hover:text-teal-700 text-slate-600 rounded-full font-medium border border-slate-200">POPIA Privacy</button>
+      <button onclick="sendQuickChip('Is my phone number private?')" class="px-2.5 py-1 bg-slate-100 hover:bg-teal-50 hover:text-teal-700 text-slate-600 rounded-full font-medium border border-slate-200">Data Privacy</button>
     </div>
     
     <!-- Input Box for Chat -->
     <div id="chat-input-container" class="p-2.5 bg-white border-t border-slate-200 flex gap-2">
-      <input type="text" id="chat-input" onkeypress="handleChatKeyPress(event)" placeholder="Ask a question..." class="flex-1 px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-teal-500">
+      <input type="text" id="chat-input" onkeypress="handleChatKeyPress(event)" placeholder="Ask Medora..." class="flex-1 px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-teal-500">
       <button onclick="sendMessage()" class="px-3.5 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg text-xs transition">Send</button>
     </div>
 
@@ -322,7 +322,7 @@ body { font-family: 'Inter', sans-serif; }
           <button type="submit" class="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg transition text-xs">Log Complaint Ticket</button>
         </form>
       </div>
-      <button onclick="toggleReportMode()" class="text-xs text-slate-500 underline text-center w-full">← Back to AI Support Chat</button>
+      <button onclick="toggleReportMode()" class="text-xs text-slate-500 underline text-center w-full">← Back to Medora Support Chat</button>
     </div>
   </div>
 </div>
@@ -350,7 +350,7 @@ body { font-family: 'Inter', sans-serif; }
         <span class="text-xl">🚨</span>
         <div>
           <h3 class="font-bold text-lg text-slate-900">Logged Support & Complaint Tickets</h3>
-          <p class="text-xs text-slate-500">Live feed of patient issues submitted via AI Chatbot widget.</p>
+          <p class="text-xs text-slate-500">Live feed of patient issues submitted via Medora Chatbot widget.</p>
         </div>
       </div>
       <button onclick="closeComplaintsModal()" class="text-slate-400 hover:text-slate-600 font-bold text-lg">×</button>
@@ -491,9 +491,9 @@ let state = {
 };
 
 const i18n = {
-  en: { welcome: "Welcome to South Rand Hospital", sub: "Get your queue ticket online, see real-time estimated wait times based on active queues, and receive live updates.", formTitle: "Get Your Queue Ticket", name: "Full Name", phone: "Mobile Number (SMS updates)", service: "Service Category", estTitle: "Estimated Wait Time:", submit: "Get Queue Ticket", queueTitle: "Current Queue Status" },
-  zu: { welcome: "Siyakwamukela eSibhedlela iSouth Rand", sub: "Thola ithikithi lakho lomugqa ku-inthanethi, ubone isikhathi esilindelekile sangempela, uluhole imilayezo bukhoma.", formTitle: "Thola Ithikithi Lakho Lomugqa", name: "Amagama Aphelele", phone: "Inombolo Yecingo (SMS)", service: "Umuthi / Umnyango", estTitle: "Isikhathi Esilindelekile:", submit: "Thola Ithikithi Lomugqa", queueTitle: "Isimo Somugqa Yamanje" },
-  af: { welcome: "Welkom by Suid-Rand Hospitaal", sub: "Kry jou tou-kaartjie aanlyn, sien intydse geskatte wagtyde gebaseer op aktiewe toue, en ontvang regstreekse opdaterings.", formTitle: "Kry Jou Tou-Kaartjie", name: "Volle Naam", phone: "Selfoonnommer (SMS-opdaterings)", service: "Dienskategorie", estTitle: "Geskatte Wagtyd:", submit: "Kry Tou-Kaartjie", queueTitle: "Huidige Tou-Status" }
+  en: { welcome: "Welcome to Patient Care Portal", sub: "Get your queue ticket online, see real-time estimated wait times based on active queues, and receive live updates.", formTitle: "Get Your Queue Ticket", name: "Full Name", phone: "Mobile Number (SMS updates)", service: "Service Category", estTitle: "Estimated Wait Time:", submit: "Get Queue Ticket", queueTitle: "Current Queue Status" },
+  zu: { welcome: "Siyakwamukela ePortali Yokunakekelwa", sub: "Thola ithikithi lakho lomugqa ku-inthanethi, ubone isikhathi esilindelekile sangempela, uluhole imilayezo bukhoma.", formTitle: "Thola Ithikithi Lakho Lomugqa", name: "Amagama Aphelele", phone: "Inombolo Yecingo (SMS)", service: "Umuthi / Umnyango", estTitle: "Isikhathi Esilindelekile:", submit: "Thola Ithikithi Lomugqa", queueTitle: "Isimo Somugqa Yamanje" },
+  af: { welcome: "Welkom by Pasiëntesorg Portaal", sub: "Kry jou tou-kaartjie aanlyn, sien intydse geskatte wagtyde gebaseer op aktiewe toue, en ontvang regstreekse opdaterings.", formTitle: "Kry Jou Tou-Kaartjie", name: "Volle Naam", phone: "Selfoonnommer (SMS-opdaterings)", service: "Dienskategorie", estTitle: "Geskatte Wagtyd:", submit: "Kry Tou-Kaartjie", queueTitle: "Huidige Tou-Status" }
 };
 
 function setLanguage(lang) {
@@ -1113,7 +1113,7 @@ function render() {
             ` : ''}
             ${col === 'progress' ? `
               <button onclick="updateStatus('${p.id}', 'completed')" class="w-full py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-semibold">Complete Visit</button>
-              <button onclick="openTransferModal('${p.id}')" class="w-full py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold flex items-center justify-center gap-1">Transfer / Prescribe</button>
+              <button onclick="openTransferModal('${p.id}')" class="w-full py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded text-xs font-semibold flex items-center justify-center gap-1">Transfer / Prescribe</button>
             ` : ''}
             ${col === 'completed' ? '<span class="text-xs text-emerald-600 font-semibold">Archived in Folder ✓</span>' : ''}
           </div>
@@ -1132,7 +1132,7 @@ function exportAuditData() {
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement("a");
   link.setAttribute("href", encodedUri);
-  link.setAttribute("download", `South_Rand_Audit_Log_${new Date().toISOString().slice(0,10)}.csv`);
+  link.setAttribute("download", `Hospital_Audit_Log_${new Date().toISOString().slice(0,10)}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -1157,7 +1157,7 @@ function renderChart() {
 }
 
 // ==========================================
-// AI CHATBOT & ISSUE REPORTING CONTROLLER
+// MEDORA AI CHATBOT & ISSUE REPORTING CONTROLLER
 // ==========================================
 function toggleChatbot() {
   const drawer = document.getElementById('chatbot-drawer');
@@ -1217,7 +1217,7 @@ async function sendMessage() {
   const loadingId = "think-" + Date.now();
   messagesBox.innerHTML += `
     <div id="${loadingId}" class="bg-teal-50 border border-teal-200 text-slate-500 p-2.5 rounded-xl rounded-tl-none max-w-[85%] italic">
-      AI Assistant is thinking...
+      Medora is thinking...
     </div>
   `;
   messagesBox.scrollTop = messagesBox.scrollHeight;
@@ -1229,11 +1229,11 @@ async function sendMessage() {
       body: JSON.stringify({
         contents: [{
           parts: [{
-            text: `You are the friendly, professional South Rand Hospital AI Support Assistant.
+            text: `You are Medora, a friendly, professional AI Support Assistant for hospital queue and patient management systems.
 System Knowledge context:
-- South Rand Hospital queue system allows digital check-ins for 8 categories.
+- The queue system allows digital check-ins across 8 hospital departments.
 - Ticket prefixes: Z (Pharmacy), E (Maternity), A (General Doctor/Outpatients), X (Emergency), P (Pediatrics), D (Dental), B (Orthopedics), F (Admin File).
-- POPIA Privacy: Patient numbers are processed strictly for SMS queue alerts under South Africa POPIA law.
+- Data Privacy: Patient numbers are processed strictly for queue alerts under legal data protection regulations.
 - Patients can see live estimated wait times based on queue size.
 - If user has a specific complaint or technical issue, recommend tapping "Report Issue" in the chat header.
 
@@ -1250,7 +1250,7 @@ User Message: "${message}"`
       const reply = data.candidates[0].content.parts[0].text;
       loadingEl.outerHTML = `
         <div class="bg-teal-50 border border-teal-200 text-slate-800 p-2.5 rounded-xl rounded-tl-none max-w-[85%] space-y-1">
-          <p class="font-bold text-teal-900 text-[10px]">South Rand AI</p>
+          <p class="font-bold text-teal-900 text-[10px]">Medora AI</p>
           <p class="text-slate-700">${reply}</p>
         </div>
       `;
