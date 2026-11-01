@@ -39,7 +39,7 @@ body { font-family: 'Inter', sans-serif; }
       <div class="w-10 h-10 rounded-lg bg-teal-600 flex items-center justify-center font-bold text-xl tracking-wider shadow" id="tenant-logo-badge">HM</div>
       <div>
         <h1 class="font-bold text-lg leading-none tracking-tight" id="header-hospital-name">Hospital Management System</h1>
-        <p class="text-xs text-teal-400 mt-0.5 font-medium">Digital Queue & Patient Care Portal</p>
+        <p class="text-xs text-teal-400 mt-0.5 font-medium">Digital Queue & Patient Care Portal (Cloud Sync Active)</p>
       </div>
     </div>
     <!-- Role Navigation with Lock Security -->
@@ -128,9 +128,9 @@ body { font-family: 'Inter', sans-serif; }
         <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
           <div>
             <h3 class="font-semibold text-lg text-slate-900" id="lbl-queue-title">Current Queue Status</h3>
-            <p class="text-xs text-slate-500">Live ticket numbers being attended to across departments</p>
+            <p class="text-xs text-slate-500">Live Firebase Cloud Sync Active</p>
           </div>
-          <span class="text-xs text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full font-medium">Tenant Isolated</span>
+          <span class="text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full font-bold animate-pulse">● Live Sync</span>
         </div>
         <div id="patient-queue-list" class="space-y-3 flex-1 overflow-y-auto max-h-[440px] pr-1"></div>
       </div>
@@ -165,9 +165,6 @@ body { font-family: 'Inter', sans-serif; }
         <p class="text-xs text-slate-500">Filter by station, manage triage levels, track physical files, and call patients.</p>
       </div>
       <div class="flex flex-wrap items-center gap-2">
-        <button onclick="openWebhookModal()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
-          n8n Webhooks <span id="webhook-status-dot" class="w-2 h-2 rounded-full bg-amber-500"></span>
-        </button>
         <button onclick="openComplaintsModal()" class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-semibold transition flex items-center gap-1">Logged Complaints (<span id="complaints-badge-count">0</span>)</button>
         <button onclick="openArchiveModal()" class="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-semibold transition flex items-center gap-1">Completed Folder (<span id="archive-badge-count">0</span>)</button>
         <button onclick="openChangePinModal()" class="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg text-xs font-semibold transition flex items-center gap-1">Change PIN</button>
@@ -419,90 +416,100 @@ body { font-family: 'Inter', sans-serif; }
     </div>
   </div>
 </div>
-<!-- n8n WEBHOOK CONFIGURATION MODAL -->
-<div id="webhook-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-  <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
-    <div class="flex justify-between items-center border-b pb-3">
-      <div class="flex items-center gap-2">
-        <span class="text-xl">⚡</span>
-        <div>
-          <h3 class="font-bold text-base text-slate-900">n8n Automation Webhooks</h3>
-          <p class="text-xs text-slate-500">Connect to your self-hosted Ubuntu n8n instance.</p>
-        </div>
-      </div>
-      <button onclick="closeWebhookModal()" class="text-slate-400 hover:text-slate-600 font-bold text-lg">×</button>
-    </div>
-    <div class="space-y-3 text-left">
-      <div>
-        <label class="block text-[11px] font-semibold text-slate-600 uppercase mb-1">Check-In Webhook URL</label>
-        <input type="url" id="hook-checkin" placeholder="https://your-n8n.com/webhook/hospital-queue" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-teal-500">
-      </div>
-      <div>
-        <label class="block text-[11px] font-semibold text-slate-600 uppercase mb-1">Queue / Alert Webhook URL</label>
-        <input type="url" id="hook-alert" placeholder="https://your-n8n.com/webhook/hospital-queue" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-teal-500">
-      </div>
-    </div>
-    <div class="flex gap-2 pt-2">
-      <button onclick="closeWebhookModal()" class="w-1/2 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-lg text-xs hover:bg-slate-200">Cancel</button>
-      <button onclick="saveWebhookSettings()" class="w-1/2 py-2.5 bg-teal-600 text-white font-semibold rounded-lg text-xs hover:bg-teal-700">Save & Connect</button>
-    </div>
-  </div>
-</div>
+
+<!-- FIREBASE CLOUD SYNC & APP SCRIPT -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  // Your Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBkn62uZ6VWv_HiFGdvp-hlHG33agRcabc",
+    authDomain: "hospital-queue-ebb3e.firebaseapp.com",
+    projectId: "hospital-queue-ebb3e",
+    storageBucket: "hospital-queue-ebb3e.firebasestorage.app",
+    messagingSenderId: "705001523913",
+    appId: "1:705001523913:web:79b3c4239b2c2cb2461b18",
+    measurementId: "G-NS5TB4WCGC"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Multi-Tenant State Configuration
+  window.currentTenant = localStorage.getItem('sr_active_tenant') || "south-rand";
+  window.hospitalTenants = {
+    "south-rand": { name: "South Rand Hospital", code: "SR", logo: "SR" },
+    "edenville": { name: "Edenville Medical Centre", code: "EM", logo: "EM" }
+  };
+
+  window.state = {
+    patients: [],
+    complaints: JSON.parse(localStorage.getItem(`sr_complaints_${window.currentTenant}_v1`)) || []
+  };
+
+  window.currentAdminPin = localStorage.getItem(`sr_admin_pin_${window.currentTenant}`) || "1234";
+  window.isAdminUnlocked = false;
+  window.pendingTargetView = null;
+  window.activeTransferPatientId = null;
+
+  let unsubscribeLiveListener = null;
+
+  // Bind tenant switching and real-time Firestore synchronization listener
+  window.initTenantSync = function(tenantKey) {
+    window.currentTenant = tenantKey;
+    localStorage.setItem('sr_active_tenant', window.currentTenant);
+    
+    window.currentAdminPin = localStorage.getItem(`sr_admin_pin_${window.currentTenant}`) || "1234";
+    window.state.complaints = JSON.parse(localStorage.getItem(`sr_complaints_${window.currentTenant}_v1`)) || [];
+
+    const tenantInfo = window.hospitalTenants[window.currentTenant];
+    document.getElementById('header-hospital-name').innerText = tenantInfo.name;
+    document.getElementById('tenant-logo-badge').innerText = tenantInfo.logo;
+    document.getElementById('tenant-selector').value = window.currentTenant;
+
+    // Terminate previous listener if switching tenants
+    if (unsubscribeLiveListener) unsubscribeLiveListener();
+
+    // Setup Real-Time Firestore Listener for Isolated Tenant Path
+    const q = query(collection(db, "hospitals", window.currentTenant, "queue"), orderBy("timestamp", "asc"));
+    unsubscribeLiveListener = onSnapshot(q, (snapshot) => {
+      window.state.patients = [];
+      snapshot.forEach((docSnap) => {
+        window.state.patients.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      if (typeof render === 'function') render();
+    }, (error) => {
+      console.warn("Firestore live sync fallback:", error);
+    });
+
+    if (typeof updateDynamicWaitEstimate === 'function') updateDynamicWaitEstimate();
+  };
+
+  window.switchHospitalTenant = function(tenantKey) {
+    window.initTenantSync(tenantKey);
+    if (typeof showSmsToast === 'function') {
+      showSmsToast(`Switched active tenant to ${window.hospitalTenants[tenantKey].name}`, "Tenant Cloud Isolation Active");
+    }
+  };
+
+  // Cloud Check-In Dispatcher
+  window.dispatchAndUpdateServer = async function(patientData) {
+    try {
+      await addDoc(collection(db, "hospitals", window.currentTenant, "queue"), {
+        ...patientData,
+        timestamp: new Date().toISOString()
+      });
+    } catch (err) {
+      console.error("Cloud check-in sync error:", err);
+    }
+  };
+
+  // Initialize tenant sync on load
+  window.initTenantSync(window.currentTenant);
+</script>
 
 <script>
-// =========================================================================
-// MULTI-TENANT CONFIGURATION (Isolates South Rand, Edenville, etc. cleanly)
-// =========================================================================
-let currentTenant = localStorage.getItem('sr_active_tenant') || "south-rand";
-
-const hospitalTenants = {
-  "south-rand": { name: "South Rand Hospital", code: "SR", logo: "SR" },
-  "edenville": { name: "Edenville Medical Centre", code: "EM", logo: "EM" }
-};
-
-function getStorageKeys() {
-  return {
-    patients: `sr_patients_${currentTenant}_v1`,
-    complaints: `sr_complaints_${currentTenant}_v1`,
-    pin: `sr_admin_pin_${currentTenant}`,
-    n8n: `sr_n8n_config_${currentTenant}`
-  };
-}
-
-let keys = getStorageKeys();
-let currentAdminPin = localStorage.getItem(keys.pin) || "1234";
-let isAdminUnlocked = false;
-let pendingTargetView = null;
-let activeTransferPatientId = null;
-let n8nConfig = JSON.parse(localStorage.getItem(keys.n8n)) || { checkinUrl: "", alertUrl: "" };
-
-let state = {
-  patients: JSON.parse(localStorage.getItem(keys.patients)) || [],
-  complaints: JSON.parse(localStorage.getItem(keys.complaints)) || []
-};
-
-function switchHospitalTenant(tenantKey) {
-  currentTenant = tenantKey;
-  localStorage.setItem('sr_active_tenant', currentTenant);
-  keys = getStorageKeys();
-  
-  // Reload tenant-specific state & configuration
-  currentAdminPin = localStorage.getItem(keys.pin) || "1234";
-  n8nConfig = JSON.parse(localStorage.getItem(keys.n8n)) || { checkinUrl: "", alertUrl: "" };
-  state.patients = JSON.parse(localStorage.getItem(keys.patients)) || [];
-  state.complaints = JSON.parse(localStorage.getItem(keys.complaints)) || [];
-  
-  // Update UI Header Branding
-  const tenantInfo = hospitalTenants[currentTenant];
-  document.getElementById('header-hospital-name').innerText = tenantInfo.name;
-  document.getElementById('tenant-logo-badge').innerText = tenantInfo.logo;
-  document.getElementById('tenant-selector').value = currentTenant;
-  
-  updateWebhookStatusDot();
-  render();
-  showSmsToast(`Switched active tenant to ${tenantInfo.name}`, "Tenant Isolation Active");
-}
-
 const i18n = {
   en: { welcome: "Welcome to Patient Care Portal", sub: "Get your queue ticket online, see real-time estimated wait times based on active queues, and receive live updates.", formTitle: "Get Your Queue Ticket", name: "Full Name", phone: "Mobile Number (SMS updates)", service: "Service Category", estTitle: "Estimated Wait Time:", submit: "Get Queue Ticket", queueTitle: "Current Queue Status" },
   zu: { welcome: "Siyakwamukela ePortali Yokunakekelwa", sub: "Thola ithikithi lakho lomugqa ku-inthanethi, ubone isikhathi esilindelekile sangempela, uluhole imilayezo bukhoma.", formTitle: "Thola Ithikithi Lakho Lomugqa", name: "Amagama Aphelele", phone: "Inombolo Yecingo (SMS)", service: "Umuthi / Umnyango", estTitle: "Isikhathi Esilindelekile:", submit: "Thola Ithikithi Lomugqa", queueTitle: "Isimo Somugqa Yamanje" },
@@ -576,51 +583,6 @@ function showNotificationBanner(message) {
   }, 12000);
 }
 
-function checkQueueWarning(estimatedMinutesRemaining) {
-  if (estimatedMinutesRemaining > 0 && estimatedMinutesRemaining <= 30) {
-    showNotificationBanner("⚠️ Notice: You have less than 30 minutes waiting time. Please make your way back to the waiting room.");
-  }
-}
-
-function openWebhookModal() {
-  document.getElementById('hook-checkin').value = n8nConfig.checkinUrl;
-  document.getElementById('hook-alert').value = n8nConfig.alertUrl;
-  document.getElementById('webhook-modal').classList.remove('hidden');
-}
-
-function closeWebhookModal() {
-  document.getElementById('webhook-modal').classList.add('hidden');
-}
-
-function saveWebhookSettings() {
-  n8nConfig.checkinUrl = document.getElementById('hook-checkin').value.trim();
-  n8nConfig.alertUrl = document.getElementById('hook-alert').value.trim();
-  localStorage.setItem(keys.n8n, JSON.stringify(n8nConfig));
-  closeWebhookModal();
-  updateWebhookStatusDot();
-  showSmsToast("n8n Webhook settings saved for " + hospitalTenants[currentTenant].name, "Connected");
-}
-
-function updateWebhookStatusDot() {
-  const dot = document.getElementById('webhook-status-dot');
-  if (dot) {
-    dot.className = (n8nConfig.checkinUrl || n8nConfig.alertUrl) ? "w-2 h-2 rounded-full bg-emerald-500 animate-pulse" : "w-2 h-2 rounded-full bg-amber-500";
-  }
-}
-
-async function dispatchWebhook(targetUrl, payload) {
-  if (!targetUrl) return;
-  try {
-    await fetch(targetUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tenant: currentTenant, ...payload })
-    });
-  } catch (err) {
-    console.warn("n8n Webhook dispatch note: Running in simulation fallback mode.", err);
-  }
-}
-
 function showSmsToast(msg, title = "System Notification") {
   const toast = document.getElementById('sms-toast');
   const text = document.getElementById('sms-toast-text');
@@ -634,58 +596,9 @@ function showSmsToast(msg, title = "System Notification") {
 }
 
 function saveState() {
-  localStorage.setItem(keys.patients, JSON.stringify(state.patients));
-  localStorage.setItem(keys.complaints, JSON.stringify(state.complaints));
+  localStorage.setItem(`sr_complaints_${currentTenant}_v1`, JSON.stringify(state.complaints));
   render();
   updateDynamicWaitEstimate();
-}
-
-async function dispatchAndUpdateServer(updatedPatientsArray) {
-  state.patients = updatedPatientsArray;
-  saveState();
-  if (n8nConfig.checkinUrl) {
-    await dispatchWebhook(n8nConfig.checkinUrl, {
-      action: 'sync_queue',
-      patients: state.patients,
-      timestamp: new Date().toISOString()
-    });
-  }
-}
-
-function checkNextInLineWarnings(dept) {
-  const waitingInDept = state.patients.filter(p => p.dept === dept && p.status === 'waiting');
-  if (waitingInDept.length === 0) return;
-  const select = document.getElementById('patient-dept');
-  let avgMinutes = 10;
-  if (select) {
-    for (let option of select.options) {
-      if (option.value === dept) {
-        avgMinutes = parseInt(option.getAttribute('data-avg')) || 10;
-        break;
-      }
-    }
-  }
-  waitingInDept.forEach((nextPatient, index) => {
-    const estimatedMinutesRemaining = index * avgMinutes;
-    if (estimatedMinutesRemaining <= 30 && !nextPatient.earlyWarningSent) {
-      nextPatient.earlyWarningSent = true;
-      dispatchAndUpdateServer(state.patients);
-      showSmsToast(`30-MIN WARNING SMS: Ticket #${nextPatient.id} (${nextPatient.name}), wait time is now ~${estimatedMinutesRemaining} mins.`);
-      showNotificationBanner(`⚠️ Notice (Ticket #${nextPatient.id}): Your wait time is down to ~${estimatedMinutesRemaining} mins.`);
-      dispatchWebhook(n8nConfig.alertUrl, { eventType: '30_min_warning', estimatedWait: estimatedMinutesRemaining, ...nextPatient });
-    }
-  });
-}
-
-function manualTriggerEarlyWarning(id) {
-  const idx = state.patients.findIndex(p => p.id === id);
-  if (idx !== -1) {
-    state.patients[idx].earlyWarningSent = true;
-    dispatchAndUpdateServer(state.patients);
-    showSmsToast(`MANUAL 30-MIN WARNING SMS: Ticket #${id} notified.`);
-    checkQueueWarning(20);
-    dispatchWebhook(n8nConfig.alertUrl, { eventType: 'manual_30_min_warning', ...state.patients[idx] });
-  }
 }
 
 function updateDynamicWaitEstimate() {
@@ -698,22 +611,6 @@ function updateDynamicWaitEstimate() {
   const totalEstimatedMinutes = waitingAhead * avgMinutesPerPerson + Math.round(avgMinutesPerPerson / 2);
   document.getElementById('est-time-text').innerText = `~ ${totalEstimatedMinutes} mins`;
   document.getElementById('est-people-text').innerText = `${waitingAhead} people waiting ahead of you in this category.`;
-}
-
-function toggleTriage(id) {
-  const idx = state.patients.findIndex(p => p.id === id);
-  if (idx !== -1) {
-    state.patients[idx].triage = state.patients[idx].triage === 'urgent' ? 'normal' : 'urgent';
-    dispatchAndUpdateServer(state.patients);
-  }
-}
-
-function toggleFileReady(id) {
-  const idx = state.patients.findIndex(p => p.id === id);
-  if (idx !== -1) {
-    state.patients[idx].fileReady = !state.patients[idx].fileReady;
-    dispatchAndUpdateServer(state.patients);
-  }
 }
 
 function requestAdminAccess(targetView) {
@@ -783,7 +680,7 @@ function saveNewPin() {
     return;
   }
   currentAdminPin = newPin;
-  localStorage.setItem(keys.pin, newPin);
+  localStorage.setItem(`sr_admin_pin_${currentTenant}`, newPin);
   closeChangePinModal();
   alert("Security PIN successfully updated!");
   lockAdminSession();
@@ -842,7 +739,6 @@ function exportDailyArchiveCSV() {
   document.body.removeChild(link);
 }
 
-// Logged Complaints Modal Logic
 function openComplaintsModal() {
   const listEl = document.getElementById('complaints-list');
   const countBadge = document.getElementById('complaints-badge-count');
@@ -936,7 +832,8 @@ function executeTransfer() {
   state.patients[idx].priority = true;
   state.patients[idx].earlyWarningSent = false;
   state.patients[idx].timestamp = new Date().toISOString();
-  dispatchAndUpdateServer(state.patients);
+  // For simplicity in transfer, save state locally
+  saveState();
   closeTransferModal();
   showSmsToast(`SMS Sent: Priority Referral #${newId} dispatched to ${targetDept}.`);
 }
@@ -974,27 +871,27 @@ function handleCheckIn(e) {
     priority: false,
     triage: 'normal',
     fileReady: true,
-    earlyWarningSent: false,
-    timestamp: new Date().toISOString()
+    earlyWarningSent: false
   };
-  state.patients.push(newTicket);
-  dispatchAndUpdateServer(state.patients);
+  
+  // Dispatches directly to Firebase Cloud via the module script function
+  if (typeof dispatchAndUpdateServer === 'function') {
+    dispatchAndUpdateServer(newTicket);
+  }
+  
   document.getElementById('checkin-form').reset();
   updateDynamicWaitEstimate();
-  showSmsToast(`SMS Sent: Ticket #${newTicket.id} confirmed for ${dept}.`);
+  showSmsToast(`SMS Sent: Ticket #${ticketNum} confirmed for ${dept}.`);
 }
 
 function updateStatus(id, newStatus) {
   const idx = state.patients.findIndex(p => p.id === id);
   if (idx !== -1) {
-    const calledPatient = state.patients[idx];
-    calledPatient.status = newStatus;
-    dispatchAndUpdateServer(state.patients);
-    
+    state.patients[idx].status = newStatus;
+    saveState();
     if (newStatus === 'progress') {
       showSmsToast(`SMS Alert: Ticket #${id} called to room.`);
-      showNotificationBanner(`🎉 Ticket #${id} (${calledPatient.name}) has been called!`);
-      checkNextInLineWarnings(calledPatient.dept);
+      showNotificationBanner(`🎉 Ticket #${id} has been called!`);
     }
   }
 }
@@ -1050,7 +947,7 @@ function render() {
     const aUrgent = (a.triage === 'urgent' || a.priority);
     const bUrgent = (b.triage === 'urgent' || b.priority);
     if (aUrgent !== bUrgent) return bUrgent - aUrgent;
-    return new Date(a.timestamp) - new Date(b.timestamp);
+    return new Date(a.timestamp || 0) - new Date(b.timestamp || 0);
   });
   
   const totalCompletedCount = state.patients.filter(p => p.status === 'completed').length;
@@ -1076,7 +973,7 @@ function render() {
         <div class="p-3.5 bg-white border ${p.triage === 'urgent' ? 'border-rose-400 ring-2 ring-rose-200' : p.priority ? 'border-amber-300 ring-1 ring-amber-300' : 'border-slate-200'} rounded-xl shadow-sm space-y-2">
           <div class="flex justify-between items-start">
             <span class="font-bold text-xs px-2 py-0.5 ${p.triage === 'urgent' ? 'bg-rose-600 text-white' : p.priority ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-800'} rounded border tracking-wider">${p.id}</span>
-            <span class="text-[10px] text-slate-400">${new Date(p.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+            <span class="text-[10px] text-slate-400">${p.timestamp ? new Date(p.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : ''}</span>
           </div>
           <div>
             <p class="text-sm font-bold text-slate-900">${p.name}</p>
@@ -1108,8 +1005,8 @@ function render() {
 
 function exportAuditData() {
   const csvContent = "data:text/csv;charset=utf-8," 
-    + ["Ticket ID, Patient Name, Phone Number, Department, Status, Priority Referral, Triage, File Ready, 30m Warning Sent, Timestamp"].join(",") + "\n"
-    + state.patients.map(p => `${p.id},"${p.name}","${p.phone}","${p.dept}",${p.status},${p.priority ? 'YES' : 'NO'},${p.triage},${p.fileReady ? 'YES' : 'NO'},${p.earlyWarningSent ? 'YES' : 'NO'},${p.timestamp}`).join("\n");
+    + ["Ticket ID, Patient Name, Phone Number, Department, Status, Priority, Triage, Timestamp"].join(",") + "\n"
+    + state.patients.map(p => `${p.id},"${p.name}","${p.phone}","${p.dept}",${p.status},${p.priority ? 'YES' : 'NO'},${p.triage},${p.timestamp}`).join("\n");
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement("a");
   link.setAttribute("href", encodedUri);
@@ -1137,8 +1034,7 @@ function renderChart() {
   });
 }
 
-// Initialize on load
-switchHospitalTenant(currentTenant);
+// Initial language setup
 setLanguage('en');
 </script>
 </body>
