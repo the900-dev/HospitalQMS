@@ -6,6 +6,38 @@
 <title>South Rand Hospital - Patient & Quality Management System</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>// Sync queue data from n8n central server every 3 seconds
+async function syncQueueFromServer() {
+  if (!n8nConfig.checkinUrl) return; // Skip if webhook isn't configured
+  
+  try {
+    const response = await fetch(n8nConfig.checkinUrl, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    if (response.ok) {
+      const serverData = await response.json();
+      // If server returns a valid patient array, update local state and re-render
+      if (serverData && Array.isArray(serverData.patients)) {
+        // Only update if data has changed to avoid overriding local typing loops
+        if (JSON.stringify(serverData.patients) !== JSON.stringify(state.patients)) {
+          state.patients = serverData.patients;
+          localStorage.setItem('sr_patients_v12', JSON.stringify(state.patients));
+          render();
+          updateDynamicWaitEstimate();
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("Sync fallback: Running on local state.", err);
+  }
+}
+
+// Start polling every 3 seconds once the page loads
+setInterval(syncQueueFromServer, 3000); </script>
+
+  
 <style>
 @import url('https://fonts.googleapis.com/css?family=Inter:wght@300;400;500;600;700&display=swap');
 body { font-family: 'Inter', sans-serif; }
