@@ -60,11 +60,15 @@ body { font-family: 'Inter', sans-serif; }
         <h2 class="text-2xl sm:text-3xl font-bold tracking-tight" id="lbl-welcome">Welcome to Patient Care Portal</h2>
         <p class="text-slate-300 text-sm mt-2" id="lbl-sub">Get your queue ticket online, see real-time estimated wait times based on active queues, and receive live updates.</p>
       </div>
-      <div class="flex flex-col items-end gap-2">
-        <!-- Tenant Switcher for Multi-Hospital Demo/Sales -->
-        <div class="bg-slate-800/90 p-2 rounded-xl border border-slate-700 text-xs flex items-center gap-2">
-          <span class="text-slate-400 font-semibold">Hospital Tenant:</span>
-          <select id="tenant-selector" onchange="switchHospitalTenant(this.value)" class="bg-slate-900 text-white px-2 py-1 rounded border border-slate-600 outline-none font-bold text-xs">
+      <div class="flex flex-col items-end gap-2 w-full md:w-auto">
+        <!-- Searchable Tenant Switcher -->
+        <div class="bg-slate-800/90 p-2.5 rounded-xl border border-slate-700 text-xs flex flex-col gap-1 w-full md:w-64">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400 font-semibold">Hospital / Clinic Search:</span>
+            <span class="text-[10px] text-teal-400 font-bold" id="tenant-current-label">South Rand</span>
+          </div>
+          <input type="text" id="tenant-search-input" oninput="filterTenants()" placeholder="🔍 Search hospital..." class="bg-slate-900 text-white px-2.5 py-1.5 rounded border border-slate-600 outline-none font-medium text-xs focus:ring-1 focus:ring-teal-500">
+          <select id="tenant-selector" onchange="switchHospitalTenant(this.value)" class="bg-slate-900 text-white px-2 py-1.5 rounded border border-slate-600 outline-none font-bold text-xs mt-1">
             <option value="south-rand">South Rand Hospital</option>
             <option value="edenville">Edenville Medical Centre</option>
           </select>
@@ -95,7 +99,12 @@ body { font-family: 'Inter', sans-serif; }
             <input type="tel" id="patient-phone" required placeholder="070 000 0000" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none transition">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1" id="lbl-service">Service Category</label>
+            <div class="flex justify-between items-center mb-1">
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider" id="lbl-service">Service Category</label>
+              <span class="text-[10px] text-teal-600 font-bold">Search enabled 🔍</span>
+            </div>
+            <!-- Search Input for Service Categories -->
+            <input type="text" id="service-search-input" oninput="filterServices()" placeholder="🔍 Search service (e.g. bone, doctor, dental)..." class="w-full px-3 py-1.5 mb-2 rounded-lg border border-slate-200 bg-slate-50 text-xs outline-none focus:ring-2 focus:ring-teal-500">
             <select id="patient-dept" required onchange="updateDynamicWaitEstimate()" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none transition bg-white">
               <option value="Medication & Pharmacy Pick-up" data-prefix="Z" data-avg="5">Medication & Pharmacy Pick-up (Z-Ticket)</option>
               <option value="Maternity & Pregnancy Care" data-prefix="E" data-avg="15">Maternity & Pregnancy Care (E-Ticket)</option>
@@ -420,7 +429,7 @@ body { font-family: 'Inter', sans-serif; }
 <!-- FIREBASE CLOUD SYNC & APP SCRIPT -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
   // Your Firebase configuration
   const firebaseConfig = {
@@ -434,7 +443,8 @@ body { font-family: 'Inter', sans-serif; }
   };
 
   const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+  // FIX: Explicitly passing custom database instance name "hospital-queue"
+  const db = getFirestore(app, "hospital-queue");
 
   // Multi-Tenant State Configuration
   window.currentTenant = localStorage.getItem('sr_active_tenant') || "south-rand";
@@ -467,6 +477,8 @@ body { font-family: 'Inter', sans-serif; }
     document.getElementById('header-hospital-name').innerText = tenantInfo.name;
     document.getElementById('tenant-logo-badge').innerText = tenantInfo.logo;
     document.getElementById('tenant-selector').value = window.currentTenant;
+    const currentLbl = document.getElementById('tenant-current-label');
+    if (currentLbl) currentLbl.innerText = tenantInfo.name;
 
     // Terminate previous listener if switching tenants
     if (unsubscribeLiveListener) unsubscribeLiveListener();
@@ -502,6 +514,48 @@ body { font-family: 'Inter', sans-serif; }
       });
     } catch (err) {
       console.error("Cloud check-in sync error:", err);
+    }
+  };
+
+  // Live Tenant Search Filter
+  window.filterTenants = function() {
+    const input = document.getElementById('tenant-search-input').value.toLowerCase();
+    const select = document.getElementById('tenant-selector');
+    let firstVisible = null;
+    for (let i = 0; i < select.options.length; i++) {
+      const option = select.options[i];
+      const text = option.text.toLowerCase();
+      if (text.includes(input)) {
+        option.style.display = "";
+        if (!firstVisible) firstVisible = option;
+      } else {
+        option.style.display = "none";
+      }
+    }
+    if (firstVisible && input.length > 0) {
+      select.value = firstVisible.value;
+      switchHospitalTenant(firstVisible.value);
+    }
+  };
+
+  // Live Service Category Search Filter
+  window.filterServices = function() {
+    const input = document.getElementById('service-search-input').value.toLowerCase();
+    const select = document.getElementById('patient-dept');
+    let firstMatch = null;
+    for (let i = 0; i < select.options.length; i++) {
+      const option = select.options[i];
+      const text = option.text.toLowerCase();
+      if (text.includes(input)) {
+        option.style.display = "";
+        if (!firstMatch) firstMatch = option;
+      } else {
+        option.style.display = "none";
+      }
+    }
+    if (firstMatch && input.length > 0) {
+      select.value = firstMatch.value;
+      updateDynamicWaitEstimate();
     }
   };
 
@@ -605,6 +659,7 @@ function updateDynamicWaitEstimate() {
   const select = document.getElementById('patient-dept');
   if (!select) return;
   const selectedOption = select.options[select.selectedIndex];
+  if (!selectedOption) return;
   const selectedDept = select.value;
   const avgMinutesPerPerson = parseInt(selectedOption.getAttribute('data-avg')) || 10;
   const waitingAhead = state.patients.filter(p => p.dept === selectedDept && p.status === 'waiting').length;
@@ -832,7 +887,6 @@ function executeTransfer() {
   state.patients[idx].priority = true;
   state.patients[idx].earlyWarningSent = false;
   state.patients[idx].timestamp = new Date().toISOString();
-  // For simplicity in transfer, save state locally
   saveState();
   closeTransferModal();
   showSmsToast(`SMS Sent: Priority Referral #${newId} dispatched to ${targetDept}.`);
