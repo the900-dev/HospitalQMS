@@ -39,7 +39,7 @@ body { font-family: 'Inter', sans-serif; }
       <div class="w-10 h-10 rounded-lg bg-teal-600 flex items-center justify-center font-bold text-xl tracking-wider shadow" id="tenant-logo-badge">HM</div>
       <div>
         <h1 class="font-bold text-lg leading-none tracking-tight" id="header-hospital-name">Hospital Management System</h1>
-        <p class="text-xs text-teal-400 mt-0.5 font-medium">Digital Queue & Patient Care Portal (Cloud Sync Active)</p>
+        <p class="text-xs text-teal-400 mt-0.5 font-medium">Digital Queue & Patient Care Portal</p>
       </div>
     </div>
     <!-- Role Navigation with Lock Security -->
@@ -60,15 +60,11 @@ body { font-family: 'Inter', sans-serif; }
         <h2 class="text-2xl sm:text-3xl font-bold tracking-tight" id="lbl-welcome">Welcome to Patient Care Portal</h2>
         <p class="text-slate-300 text-sm mt-2" id="lbl-sub">Get your queue ticket online, see real-time estimated wait times based on active queues, and receive live updates.</p>
       </div>
-      <div class="flex flex-col items-end gap-2 w-full md:w-auto">
-        <!-- Searchable Tenant Switcher -->
-        <div class="bg-slate-800/90 p-2.5 rounded-xl border border-slate-700 text-xs flex flex-col gap-1 w-full md:w-64">
-          <div class="flex items-center justify-between">
-            <span class="text-slate-400 font-semibold">Hospital / Clinic Search:</span>
-            <span class="text-[10px] text-teal-400 font-bold" id="tenant-current-label">South Rand</span>
-          </div>
-          <input type="text" id="tenant-search-input" oninput="filterTenants()" placeholder="🔍 Search hospital..." class="bg-slate-900 text-white px-2.5 py-1.5 rounded border border-slate-600 outline-none font-medium text-xs focus:ring-1 focus:ring-teal-500">
-          <select id="tenant-selector" onchange="switchHospitalTenant(this.value)" class="bg-slate-900 text-white px-2 py-1.5 rounded border border-slate-600 outline-none font-bold text-xs mt-1">
+      <div class="flex flex-col items-end gap-2">
+        <!-- Tenant Switcher for Multi-Hospital Demo/Sales -->
+        <div class="bg-slate-800/90 p-2 rounded-xl border border-slate-700 text-xs flex items-center gap-2">
+          <span class="text-slate-400 font-semibold">Hospital Tenant:</span>
+          <select id="tenant-selector" onchange="switchHospitalTenant(this.value)" class="bg-slate-900 text-white px-2 py-1 rounded border border-slate-600 outline-none font-bold text-xs">
             <option value="south-rand">South Rand Hospital</option>
             <option value="edenville">Edenville Medical Centre</option>
           </select>
@@ -99,12 +95,7 @@ body { font-family: 'Inter', sans-serif; }
             <input type="tel" id="patient-phone" required placeholder="070 000 0000" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none transition">
           </div>
           <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider" id="lbl-service">Service Category</label>
-              <span class="text-[10px] text-teal-600 font-bold">Search enabled 🔍</span>
-            </div>
-            <!-- Search Input for Service Categories -->
-            <input type="text" id="service-search-input" oninput="filterServices()" placeholder="🔍 Search service (e.g. bone, doctor, dental)..." class="w-full px-3 py-1.5 mb-2 rounded-lg border border-slate-200 bg-slate-50 text-xs outline-none focus:ring-2 focus:ring-teal-500">
+            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1" id="lbl-service">Service Category</label>
             <select id="patient-dept" required onchange="updateDynamicWaitEstimate()" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none transition bg-white">
               <option value="Medication & Pharmacy Pick-up" data-prefix="Z" data-avg="5">Medication & Pharmacy Pick-up (Z-Ticket)</option>
               <option value="Maternity & Pregnancy Care" data-prefix="E" data-avg="15">Maternity & Pregnancy Care (E-Ticket)</option>
@@ -137,9 +128,9 @@ body { font-family: 'Inter', sans-serif; }
         <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
           <div>
             <h3 class="font-semibold text-lg text-slate-900" id="lbl-queue-title">Current Queue Status</h3>
-            <p class="text-xs text-slate-500">Live Firebase Cloud Sync Active</p>
+            <p class="text-xs text-slate-500">Live ticket numbers being attended to across departments</p>
           </div>
-          <span class="text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full font-bold animate-pulse">● Live Sync</span>
+          <span class="text-xs text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full font-medium">Tenant Isolated</span>
         </div>
         <div id="patient-queue-list" class="space-y-3 flex-1 overflow-y-auto max-h-[440px] pr-1"></div>
       </div>
@@ -174,6 +165,9 @@ body { font-family: 'Inter', sans-serif; }
         <p class="text-xs text-slate-500">Filter by station, manage triage levels, track physical files, and call patients.</p>
       </div>
       <div class="flex flex-wrap items-center gap-2">
+        <button onclick="openWebhookModal()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
+          n8n Webhooks <span id="webhook-status-dot" class="w-2 h-2 rounded-full bg-amber-500"></span>
+        </button>
         <button onclick="openComplaintsModal()" class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-semibold transition flex items-center gap-1">Logged Complaints (<span id="complaints-badge-count">0</span>)</button>
         <button onclick="openArchiveModal()" class="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-semibold transition flex items-center gap-1">Completed Folder (<span id="archive-badge-count">0</span>)</button>
         <button onclick="openChangePinModal()" class="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg text-xs font-semibold transition flex items-center gap-1">Change PIN</button>
@@ -262,14 +256,12 @@ body { font-family: 'Inter', sans-serif; }
     </div>
   </section>
 </main>
-
 <!-- STANDALONE COMPLAINT / SUPPORT BUTTON WIDGET -->
 <div id="complaint-widget-container" class="fixed bottom-5 right-5 z-50">
   <button onclick="openComplaintModal()" class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-3 rounded-full shadow-2xl flex items-center gap-2 transition transform hover:scale-105 border-2 border-rose-400 font-bold text-xs">
     <span>⚠️</span> Report Issue / Support
   </button>
 </div>
-
 <!-- PATIENT COMPLAINT MODAL -->
 <div id="patient-complaint-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
@@ -303,7 +295,6 @@ body { font-family: 'Inter', sans-serif; }
     </form>
   </div>
 </div>
-
 <!-- ADMIN ACCESS PIN MODAL -->
 <div id="admin-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl border border-slate-200">
@@ -318,7 +309,6 @@ body { font-family: 'Inter', sans-serif; }
     <p id="pin-error" class="text-xs text-rose-600 font-semibold mt-2 hidden">Invalid PIN Code. Try again.</p>
   </div>
 </div>
-
 <!-- STAFF LOGGED COMPLAINTS MODAL -->
 <div id="complaints-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[85vh] flex flex-col">
@@ -339,7 +329,6 @@ body { font-family: 'Inter', sans-serif; }
     </div>
   </div>
 </div>
-
 <!-- CHANGE PIN SECURITY MODAL -->
 <div id="change-pin-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl border border-slate-200 space-y-4">
@@ -425,671 +414,748 @@ body { font-family: 'Inter', sans-serif; }
     </div>
   </div>
 </div>
+<!-- n8n WEBHOOK CONFIGURATION MODAL -->
+<div id="webhook-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+    <div class="flex justify-between items-center border-b pb-3">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">⚡</span>
+        <div>
+          <h3 class="font-bold text-base text-slate-900">n8n Automation Webhooks</h3>
+          <p class="text-xs text-slate-500">Connect to your self-hosted Ubuntu n8n instance.</p>
+        </div>
+      </div>
+      <button onclick="closeWebhookModal()" class="text-slate-400 hover:text-slate-600 font-bold text-lg">×</button>
+    </div>
+    <div class="space-y-3 text-left">
+      <div>
+        <label class="block text-[11px] font-semibold text-slate-600 uppercase mb-1">Check-In Webhook URL</label>
+        <input type="url" id="hook-checkin" placeholder="https://your-n8n.com/webhook/hospital-queue" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-teal-500">
+      </div>
+      <div>
+        <label class="block text-[11px] font-semibold text-slate-600 uppercase mb-1">Queue / Alert Webhook URL</label>
+        <input type="url" id="hook-alert" placeholder="https://your-n8n.com/webhook/hospital-queue" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-teal-500">
+      </div>
+    </div>
+    <div class="flex gap-2 pt-2">
+      <button onclick="closeWebhookModal()" class="w-1/2 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-lg text-xs hover:bg-slate-200">Cancel</button>
+      <button onclick="saveWebhookSettings()" class="w-1/2 py-2.5 bg-teal-600 text-white font-semibold rounded-lg text-xs hover:bg-teal-700">Save & Connect</button>
+    </div>
+  </div>
+</div>
 
-<!-- FIREBASE CLOUD SYNC & APP SCRIPT -->
+<!-- FIREBASE MODULE SCRIPT -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { getFirestore, collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-  // Your Firebase configuration
   const firebaseConfig = {
-    apiKey: "AIzaSyBkn62uZ6VWv_HiFGdvp-hlHG33agRcabc",
-    authDomain: "hospital-queue-ebb3e.firebaseapp.com",
-    projectId: "hospital-queue-ebb3e",
-    storageBucket: "hospital-queue-ebb3e.firebasestorage.app",
-    messagingSenderId: "705001523913",
-    appId: "1:705001523913:web:79b3c4239b2c2cb2461b18",
-    measurementId: "G-NS5TB4WCGC"
+    apiKey: "AIzaSyAPU43LtcLEdjCQNoBx3R6UE4giSOTLMTU",
+    authDomain: "hospital-queue-v2.firebaseapp.com",
+    projectId: "hospital-queue-v2",
+    storageBucket: "hospital-queue-v2.firebasestorage.app",
+    messagingSenderId: "196329817500",
+    appId: "1:196329817500:web:09fe50362cd6f88fac7459"
   };
 
   const app = initializeApp(firebaseConfig);
-  // FIX: Explicitly passing custom database instance name "hospital-queue"
-  const db = getFirestore(app, "hospital-queue");
+  const db = getFirestore(app);
 
-  // Multi-Tenant State Configuration
+  let unsubscribePatients = null;
+  let unsubscribeComplaints = null;
+
+  // Global Multi-Tenant Configuration
   window.currentTenant = localStorage.getItem('sr_active_tenant') || "south-rand";
   window.hospitalTenants = {
     "south-rand": { name: "South Rand Hospital", code: "SR", logo: "SR" },
     "edenville": { name: "Edenville Medical Centre", code: "EM", logo: "EM" }
   };
 
-  window.state = {
-    patients: [],
-    complaints: JSON.parse(localStorage.getItem(`sr_complaints_${window.currentTenant}_v1`)) || []
-  };
+  function getStorageKeys() {
+    return {
+      pin: `sr_admin_pin_${window.currentTenant}`,
+      n8n: `sr_n8n_config_${window.currentTenant}`
+    };
+  }
 
-  window.currentAdminPin = localStorage.getItem(`sr_admin_pin_${window.currentTenant}`) || "1234";
+  let keys = getStorageKeys();
+  window.currentAdminPin = localStorage.getItem(keys.pin) || "1234";
   window.isAdminUnlocked = false;
   window.pendingTargetView = null;
   window.activeTransferPatientId = null;
+  window.n8nConfig = JSON.parse(localStorage.getItem(keys.n8n)) || { checkinUrl: "", alertUrl: "" };
 
-  let unsubscribeLiveListener = null;
+  window.state = {
+    patients: [],
+    complaints: []
+  };
 
-  // Bind tenant switching and real-time Firestore synchronization listener
-  window.initTenantSync = function(tenantKey) {
+  // Real-time Firestore Sync Engine
+  window.subscribeToFirestore = function() {
+    if (unsubscribePatients) unsubscribePatients();
+    if (unsubscribeComplaints) unsubscribeComplaints();
+
+    const patientsRef = collection(db, "hospitals", window.currentTenant, "patients");
+    unsubscribePatients = onSnapshot(patientsRef, (snapshot) => {
+      window.state.patients = snapshot.docs.map(doc => doc.data());
+      window.render();
+      window.updateDynamicWaitEstimate();
+      if (document.getElementById('view-exec') && !document.getElementById('view-exec').classList.contains('hidden')) {
+        window.renderChart();
+      }
+    });
+
+    const complaintsRef = collection(db, "hospitals", window.currentTenant, "complaints");
+    unsubscribeComplaints = onSnapshot(complaintsRef, (snapshot) => {
+      window.state.complaints = snapshot.docs.map(doc => doc.data());
+      const complaintsBadge = document.getElementById('complaints-badge-count');
+      if (complaintsBadge) complaintsBadge.innerText = window.state.complaints.length;
+      if (document.getElementById('complaints-modal') && !document.getElementById('complaints-modal').classList.contains('hidden')) {
+        window.openComplaintsModal();
+      }
+    });
+  };
+
+  window.switchHospitalTenant = function(tenantKey) {
     window.currentTenant = tenantKey;
     localStorage.setItem('sr_active_tenant', window.currentTenant);
+    keys = getStorageKeys();
     
-    window.currentAdminPin = localStorage.getItem(`sr_admin_pin_${window.currentTenant}`) || "1234";
-    window.state.complaints = JSON.parse(localStorage.getItem(`sr_complaints_${window.currentTenant}_v1`)) || [];
-
+    window.currentAdminPin = localStorage.getItem(keys.pin) || "1234";
+    window.n8nConfig = JSON.parse(localStorage.getItem(keys.n8n)) || { checkinUrl: "", alertUrl: "" };
+    
     const tenantInfo = window.hospitalTenants[window.currentTenant];
     document.getElementById('header-hospital-name').innerText = tenantInfo.name;
     document.getElementById('tenant-logo-badge').innerText = tenantInfo.logo;
     document.getElementById('tenant-selector').value = window.currentTenant;
-    const currentLbl = document.getElementById('tenant-current-label');
-    if (currentLbl) currentLbl.innerText = tenantInfo.name;
-
-    // Terminate previous listener if switching tenants
-    if (unsubscribeLiveListener) unsubscribeLiveListener();
-
-    // Setup Real-Time Firestore Listener for Isolated Tenant Path
-    const q = query(collection(db, "hospitals", window.currentTenant, "queue"), orderBy("timestamp", "asc"));
-    unsubscribeLiveListener = onSnapshot(q, (snapshot) => {
-      window.state.patients = [];
-      snapshot.forEach((docSnap) => {
-        window.state.patients.push({ id: docSnap.id, ...docSnap.data() });
-      });
-      if (typeof render === 'function') render();
-    }, (error) => {
-      console.warn("Firestore live sync fallback:", error);
-    });
-
-    if (typeof updateDynamicWaitEstimate === 'function') updateDynamicWaitEstimate();
+    
+    window.updateWebhookStatusDot();
+    window.subscribeToFirestore();
+    window.showSmsToast(`Switched active tenant to ${tenantInfo.name}`, "Tenant Isolation Active");
   };
 
-  window.switchHospitalTenant = function(tenantKey) {
-    window.initTenantSync(tenantKey);
-    if (typeof showSmsToast === 'function') {
-      showSmsToast(`Switched active tenant to ${window.hospitalTenants[tenantKey].name}`, "Tenant Cloud Isolation Active");
-    }
-  };
+  window.handleCheckIn = async function(e) {
+    e.preventDefault();
+    const name = document.getElementById('patient-name').value;
+    const phone = document.getElementById('patient-phone').value;
+    const select = document.getElementById('patient-dept');
+    const selectedOption = select.options[select.selectedIndex];
+    const dept = select.value;
+    const prefix = selectedOption.getAttribute('data-prefix');
+    const ticketNum = prefix + '-' + Math.floor(100 + Math.random() * 900);
+    const newTicket = {
+      id: ticketNum,
+      name: name,
+      phone: phone,
+      dept: dept,
+      status: 'waiting',
+      priority: false,
+      triage: 'normal',
+      fileReady: true,
+      earlyWarningSent: false,
+      timestamp: new Date().toISOString()
+    };
 
-  // Cloud Check-In Dispatcher
-  window.dispatchAndUpdateServer = async function(patientData) {
-    try {
-      await addDoc(collection(db, "hospitals", window.currentTenant, "queue"), {
-        ...patientData,
+    await setDoc(doc(db, "hospitals", window.currentTenant, "patients", newTicket.id), newTicket);
+
+    if (window.n8nConfig.checkinUrl) {
+      window.dispatchWebhook(window.n8nConfig.checkinUrl, {
+        action: 'patient_checkin',
+        patient: newTicket,
         timestamp: new Date().toISOString()
       });
-    } catch (err) {
-      console.error("Cloud check-in sync error:", err);
+    }
+
+    document.getElementById('checkin-form').reset();
+    window.updateDynamicWaitEstimate();
+    window.showSmsToast(`SMS Sent: Ticket #${newTicket.id} confirmed for ${dept}.`);
+  };
+
+  window.updateStatus = async function(id, newStatus) {
+    const pRef = doc(db, "hospitals", window.currentTenant, "patients", id);
+    const calledPatient = window.state.patients.find(p => p.id === id);
+    
+    await updateDoc(pRef, { status: newStatus });
+
+    if (newStatus === 'progress' && calledPatient) {
+      window.showSmsToast(`SMS Alert: Ticket #${id} called to room.`);
+      window.showNotificationBanner(`🎉 Ticket #${id} (${calledPatient.name}) has been called!`);
+      window.checkNextInLineWarnings(calledPatient.dept);
     }
   };
 
-  // Live Tenant Search Filter
-  window.filterTenants = function() {
-    const input = document.getElementById('tenant-search-input').value.toLowerCase();
-    const select = document.getElementById('tenant-selector');
-    let firstVisible = null;
-    for (let i = 0; i < select.options.length; i++) {
-      const option = select.options[i];
-      const text = option.text.toLowerCase();
-      if (text.includes(input)) {
-        option.style.display = "";
-        if (!firstVisible) firstVisible = option;
-      } else {
-        option.style.display = "none";
-      }
-    }
-    if (firstVisible && input.length > 0) {
-      select.value = firstVisible.value;
-      switchHospitalTenant(firstVisible.value);
+  window.toggleTriage = async function(id) {
+    const p = window.state.patients.find(pt => pt.id === id);
+    if (p) {
+      const nextTriage = p.triage === 'urgent' ? 'normal' : 'urgent';
+      await updateDoc(doc(db, "hospitals", window.currentTenant, "patients", id), { triage: nextTriage });
     }
   };
 
-  // Live Service Category Search Filter
-  window.filterServices = function() {
-    const input = document.getElementById('service-search-input').value.toLowerCase();
+  window.toggleFileReady = async function(id) {
+    const p = window.state.patients.find(pt => pt.id === id);
+    if (p) {
+      await updateDoc(doc(db, "hospitals", window.currentTenant, "patients", id), { fileReady: !p.fileReady });
+    }
+  };
+
+  window.manualTriggerEarlyWarning = async function(id) {
+    const p = window.state.patients.find(pt => pt.id === id);
+    if (p) {
+      await updateDoc(doc(db, "hospitals", window.currentTenant, "patients", id), { earlyWarningSent: true });
+      window.showSmsToast(`MANUAL 30-MIN WARNING SMS: Ticket #${id} notified.`);
+      window.checkQueueWarning(20);
+      window.dispatchWebhook(window.n8nConfig.alertUrl, { eventType: 'manual_30_min_warning', ...p });
+    }
+  };
+
+  window.checkNextInLineWarnings = function(dept) {
+    const waitingInDept = window.state.patients.filter(p => p.dept === dept && p.status === 'waiting');
+    if (waitingInDept.length === 0) return;
     const select = document.getElementById('patient-dept');
-    let firstMatch = null;
-    for (let i = 0; i < select.options.length; i++) {
-      const option = select.options[i];
-      const text = option.text.toLowerCase();
-      if (text.includes(input)) {
-        option.style.display = "";
-        if (!firstMatch) firstMatch = option;
-      } else {
-        option.style.display = "none";
+    let avgMinutes = 10;
+    if (select) {
+      for (let option of select.options) {
+        if (option.value === dept) {
+          avgMinutes = parseInt(option.getAttribute('data-avg')) || 10;
+          break;
+        }
       }
     }
-    if (firstMatch && input.length > 0) {
-      select.value = firstMatch.value;
-      updateDynamicWaitEstimate();
+    waitingInDept.forEach(async (nextPatient, index) => {
+      const estimatedMinutesRemaining = index * avgMinutes;
+      if (estimatedMinutesRemaining <= 30 && !nextPatient.earlyWarningSent) {
+        await updateDoc(doc(db, "hospitals", window.currentTenant, "patients", nextPatient.id), { earlyWarningSent: true });
+        window.showSmsToast(`30-MIN WARNING SMS: Ticket #${nextPatient.id} (${nextPatient.name}), wait time is now ~${estimatedMinutesRemaining} mins.`);
+        window.showNotificationBanner(`⚠️ Notice (Ticket #${nextPatient.id}): Your wait time is down to ~${estimatedMinutesRemaining} mins.`);
+        window.dispatchWebhook(window.n8nConfig.alertUrl, { eventType: '30_min_warning', estimatedWait: estimatedMinutesRemaining, ...nextPatient });
+      }
+    });
+  };
+
+  window.submitIssueReport = async function(e) {
+    e.preventDefault();
+    const user = document.getElementById('issue-user').value.trim();
+    const category = document.getElementById('issue-category').value;
+    const description = document.getElementById('issue-desc').value.trim();
+    const docId = 'ticket-' + Date.now();
+    const newComplaint = {
+      docId,
+      user,
+      category,
+      description,
+      timestamp: new Date().toISOString()
+    };
+
+    await setDoc(doc(db, "hospitals", window.currentTenant, "complaints", docId), newComplaint);
+
+    document.getElementById('issue-form').reset();
+    window.closeComplaintModal();
+    window.showSmsToast("Issue ticket logged successfully. Staff notified!", "Support Report Submitted");
+    window.showNotificationBanner("🚨 Your issue ticket has been submitted to staff!");
+  };
+
+  window.dismissComplaint = async function(docId) {
+    await deleteDoc(doc(db, "hospitals", window.currentTenant, "complaints", docId));
+  };
+
+  window.executeTransfer = async function() {
+    if (!window.activeTransferPatientId) return;
+    const oldId = window.activeTransferPatientId;
+    const p = window.state.patients.find(pt => pt.id === oldId);
+    if (!p) return;
+
+    const select = document.getElementById('transfer-target-dept');
+    const targetDept = select.value;
+    const prefix = select.options[select.selectedIndex].getAttribute('data-prefix');
+    const newId = `${prefix}-${Math.floor(100 + Math.random() * 900)}`;
+
+    const updatedPatient = {
+      ...p,
+      id: newId,
+      dept: targetDept,
+      status: 'waiting',
+      priority: true,
+      earlyWarningSent: false,
+      timestamp: new Date().toISOString()
+    };
+
+    await deleteDoc(doc(db, "hospitals", window.currentTenant, "patients", oldId));
+    await setDoc(doc(db, "hospitals", window.currentTenant, "patients", newId), updatedPatient);
+
+    window.closeTransferModal();
+    window.showSmsToast(`SMS Sent: Priority Referral #${newId} dispatched to ${targetDept}.`);
+  };
+
+  // UI Support Logic & Rendering Functions
+  const i18n = {
+    en: { welcome: "Welcome to Patient Care Portal", sub: "Get your queue ticket online, see real-time estimated wait times based on active queues, and receive live updates.", formTitle: "Get Your Queue Ticket", name: "Full Name", phone: "Mobile Number (SMS updates)", service: "Service Category", estTitle: "Estimated Wait Time:", submit: "Get Queue Ticket", queueTitle: "Current Queue Status" },
+    zu: { welcome: "Siyakwamukela ePortali Yokunakekelwa", sub: "Thola ithikithi lakho lomugqa ku-inthanethi, ubone isikhathi esilindelekile sangempela, uluhole imilayezo bukhoma.", formTitle: "Thola Ithikithi Lakho Lomugqa", name: "Amagama Aphelele", phone: "Inombolo Yecingo (SMS)", service: "Umuthi / Umnyango", estTitle: "Isikhathi Esilindelekile:", submit: "Thola Ithikithi Lomugqa", queueTitle: "Isimo Somugqa Yamanje" },
+    af: { welcome: "Welkom by Pasiëntesorg Portaal", sub: "Kry jou tou-kaartjie aanlyn, sien intydse geskatte wagtyde gebaseer op aktiewe toue, en ontvang regstreekse opdaterings.", formTitle: "Kry Jou Tou-Kaartjie", name: "Volle Naam", phone: "Selfoonnommer (SMS-opdaterings)", service: "Dienskategorie", estTitle: "Geskatte Wagtyd:", submit: "Kry Tou-Kaartjie", queueTitle: "Huidige Tou-Status" }
+  };
+
+  window.setLanguage = function(lang) {
+    const t = i18n[lang] || i18n.en;
+    document.getElementById('lbl-welcome').innerText = t.welcome;
+    document.getElementById('lbl-sub').innerText = t.sub;
+    document.getElementById('lbl-form-title').innerText = t.formTitle;
+    document.getElementById('lbl-name').innerText = t.name;
+    document.getElementById('lbl-phone').innerText = t.phone;
+    document.getElementById('lbl-service').innerText = t.service;
+    document.getElementById('lbl-est-title').innerText = t.estTitle;
+    document.getElementById('btn-submit').innerText = t.submit;
+    document.getElementById('lbl-queue-title').innerText = t.queueTitle;
+    ['en', 'zu', 'af'].forEach(l => {
+      const btn = document.getElementById(`lang-btn-${l}`);
+      if (btn) {
+        btn.className = l === lang ? "px-2.5 py-1 bg-teal-600 text-white rounded font-bold" : "px-2.5 py-1 bg-slate-700 text-slate-200 hover:bg-slate-600 rounded font-bold";
+      }
+    });
+  };
+
+  window.playNotificationChime = async function() {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      const ctx = new AudioContext();
+      if (ctx.state === 'suspended') await ctx.resume();
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(880, ctx.currentTime);
+      gain1.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(1174.66, ctx.currentTime + 0.15);
+      gain2.gain.setValueAtTime(0.4, ctx.currentTime + 0.15);
+      gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc1.start(ctx.currentTime);
+      osc1.stop(ctx.currentTime + 0.4);
+      osc2.start(ctx.currentTime + 0.15);
+      osc2.stop(ctx.currentTime + 0.8);
+    } catch (err) {
+      console.warn("Audio Context playback prevented by browser:", err);
     }
   };
 
-  // Initialize tenant sync on load
-  window.initTenantSync(window.currentTenant);
-</script>
-
-<script>
-const i18n = {
-  en: { welcome: "Welcome to Patient Care Portal", sub: "Get your queue ticket online, see real-time estimated wait times based on active queues, and receive live updates.", formTitle: "Get Your Queue Ticket", name: "Full Name", phone: "Mobile Number (SMS updates)", service: "Service Category", estTitle: "Estimated Wait Time:", submit: "Get Queue Ticket", queueTitle: "Current Queue Status" },
-  zu: { welcome: "Siyakwamukela ePortali Yokunakekelwa", sub: "Thola ithikithi lakho lomugqa ku-inthanethi, ubone isikhathi esilindelekile sangempela, uluhole imilayezo bukhoma.", formTitle: "Thola Ithikithi Lakho Lomugqa", name: "Amagama Aphelele", phone: "Inombolo Yecingo (SMS)", service: "Umuthi / Umnyango", estTitle: "Isikhathi Esilindelekile:", submit: "Thola Ithikithi Lomugqa", queueTitle: "Isimo Somugqa Yamanje" },
-  af: { welcome: "Welkom by Pasiëntesorg Portaal", sub: "Kry jou tou-kaartjie aanlyn, sien intydse geskatte wagtyde gebaseer op aktiewe toue, en ontvang regstreekse opdaterings.", formTitle: "Kry Jou Tou-Kaartjie", name: "Volle Naam", phone: "Selfoonnommer (SMS-opdaterings)", service: "Dienskategorie", estTitle: "Geskatte Wagtyd:", submit: "Kry Tou-Kaartjie", queueTitle: "Huidige Tou-Status" }
-};
-
-function setLanguage(lang) {
-  const t = i18n[lang] || i18n.en;
-  document.getElementById('lbl-welcome').innerText = t.welcome;
-  document.getElementById('lbl-sub').innerText = t.sub;
-  document.getElementById('lbl-form-title').innerText = t.formTitle;
-  document.getElementById('lbl-name').innerText = t.name;
-  document.getElementById('lbl-phone').innerText = t.phone;
-  document.getElementById('lbl-service').innerText = t.service;
-  document.getElementById('lbl-est-title').innerText = t.estTitle;
-  document.getElementById('btn-submit').innerText = t.submit;
-  document.getElementById('lbl-queue-title').innerText = t.queueTitle;
-  ['en', 'zu', 'af'].forEach(l => {
-    const btn = document.getElementById(`lang-btn-${l}`);
-    if (btn) {
-      btn.className = l === lang ? "px-2.5 py-1 bg-teal-600 text-white rounded font-bold" : "px-2.5 py-1 bg-slate-700 text-slate-200 hover:bg-slate-600 rounded font-bold";
-    }
-  });
-}
-
-// Audio Chime Generator
-async function playNotificationChime() {
-  try {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContext) return;
-    const ctx = new AudioContext();
-    if (ctx.state === 'suspended') {
-      await ctx.resume();
-    }
-    const osc1 = ctx.createOscillator();
-    const gain1 = ctx.createGain();
-    osc1.type = 'sine';
-    osc1.frequency.setValueAtTime(880, ctx.currentTime);
-    gain1.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
-    osc1.connect(gain1);
-    gain1.connect(ctx.destination);
-    const osc2 = ctx.createOscillator();
-    const gain2 = ctx.createGain();
-    osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(1174.66, ctx.currentTime + 0.15);
-    gain2.gain.setValueAtTime(0.4, ctx.currentTime + 0.15);
-    gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
-    osc2.connect(gain2);
-    gain2.connect(ctx.destination);
-    osc1.start(ctx.currentTime);
-    osc1.stop(ctx.currentTime + 0.4);
-    osc2.start(ctx.currentTime + 0.15);
-    osc2.stop(ctx.currentTime + 0.8);
-  } catch (err) {
-    console.warn("Audio Context playback prevented by browser:", err);
-  }
-}
-
-function showNotificationBanner(message) {
-  playNotificationChime();
-  const banner = document.getElementById('notificationBanner');
-  const textEl = document.getElementById('notification-banner-text');
-  if (!banner || !textEl) return;
-  textEl.innerText = message;
-  banner.classList.remove('hidden', '-translate-y-24');
-  banner.classList.add('translate-y-0');
-  setTimeout(() => {
-    banner.classList.remove('translate-y-0');
-    banner.classList.add('-translate-y-24');
-  }, 12000);
-}
-
-function showSmsToast(msg, title = "System Notification") {
-  const toast = document.getElementById('sms-toast');
-  const text = document.getElementById('sms-toast-text');
-  const titleEl = document.getElementById('toast-title');
-  titleEl.innerText = title;
-  text.innerText = msg;
-  toast.classList.remove('translate-y-[-200%]');
-  setTimeout(() => {
-    toast.classList.add('translate-y-[-200%]');
-  }, 4000);
-}
-
-function saveState() {
-  localStorage.setItem(`sr_complaints_${currentTenant}_v1`, JSON.stringify(state.complaints));
-  render();
-  updateDynamicWaitEstimate();
-}
-
-function updateDynamicWaitEstimate() {
-  const select = document.getElementById('patient-dept');
-  if (!select) return;
-  const selectedOption = select.options[select.selectedIndex];
-  if (!selectedOption) return;
-  const selectedDept = select.value;
-  const avgMinutesPerPerson = parseInt(selectedOption.getAttribute('data-avg')) || 10;
-  const waitingAhead = state.patients.filter(p => p.dept === selectedDept && p.status === 'waiting').length;
-  const totalEstimatedMinutes = waitingAhead * avgMinutesPerPerson + Math.round(avgMinutesPerPerson / 2);
-  document.getElementById('est-time-text').innerText = `~ ${totalEstimatedMinutes} mins`;
-  document.getElementById('est-people-text').innerText = `${waitingAhead} people waiting ahead of you in this category.`;
-}
-
-function requestAdminAccess(targetView) {
-  if (isAdminUnlocked) {
-    switchView(targetView);
-  } else {
-    pendingTargetView = targetView;
-    document.getElementById('admin-modal').classList.remove('hidden');
-    document.getElementById('admin-pin').focus();
-  }
-}
-
-function verifyAdminPin() {
-  const pinInput = document.getElementById('admin-pin').value;
-  if (pinInput === currentAdminPin) {
-    isAdminUnlocked = true;
-    closeAdminModal();
-    if (pendingTargetView) switchView(pendingTargetView);
-  } else {
-    document.getElementById('pin-error').classList.remove('hidden');
-  }
-}
-
-function closeAdminModal() {
-  document.getElementById('admin-modal').classList.add('hidden');
-  document.getElementById('admin-pin').value = "";
-  document.getElementById('pin-error').classList.add('hidden');
-}
-
-function lockAdminSession() {
-  isAdminUnlocked = false;
-  switchView('patient');
-  alert('Admin session locked successfully.');
-}
-
-function openChangePinModal() {
-  document.getElementById('change-pin-modal').classList.remove('hidden');
-  document.getElementById('pin-current').focus();
-}
-
-function closeChangePinModal() {
-  document.getElementById('change-pin-modal').classList.add('hidden');
-  document.getElementById('pin-current').value = "";
-  document.getElementById('pin-new').value = "";
-  document.getElementById('pin-confirm').value = "";
-  document.getElementById('change-pin-error').classList.add('hidden');
-}
-
-function saveNewPin() {
-  const curr = document.getElementById('pin-current').value;
-  const newPin = document.getElementById('pin-new').value;
-  const confirmPin = document.getElementById('pin-confirm').value;
-  const errBox = document.getElementById('change-pin-error');
-  if (curr !== currentAdminPin) {
-    errBox.innerText = "Current PIN is incorrect.";
-    errBox.classList.remove('hidden');
-    return;
-  }
-  if (!newPin || newPin.length < 4) {
-    errBox.innerText = "New PIN must be at least 4 digits.";
-    errBox.classList.remove('hidden');
-    return;
-  }
-  if (newPin !== confirmPin) {
-    errBox.innerText = "New PIN and Confirm PIN do not match.";
-    errBox.classList.remove('hidden');
-    return;
-  }
-  currentAdminPin = newPin;
-  localStorage.setItem(`sr_admin_pin_${currentTenant}`, newPin);
-  closeChangePinModal();
-  alert("Security PIN successfully updated!");
-  lockAdminSession();
-}
-
-function openArchiveModal() {
-  const dateInput = document.getElementById('archive-date-filter');
-  if (!dateInput.value) {
-    dateInput.value = new Date().toISOString().slice(0, 10);
-  }
-  const selectedDate = dateInput.value;
-  const completedPatients = state.patients.filter(p => {
-    if (p.status !== 'completed') return false;
-    return new Date(p.timestamp).toISOString().slice(0, 10) === selectedDate;
-  });
-
-  const listEl = document.getElementById('archive-list');
-  document.getElementById('archive-badge-count').innerText = state.patients.filter(p => p.status === 'completed').length;
-  document.getElementById('archive-total-text').innerText = `Total Attended on ${selectedDate}: ${completedPatients.length}`;
-  
-  listEl.innerHTML = completedPatients.length > 0 ? completedPatients.map(p => `
-    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs">
-      <div class="flex items-center space-x-3">
-        <span class="font-bold px-2 py-1 bg-slate-900 text-white rounded">${p.id}</span>
-        <div>
-          <p class="font-bold text-slate-900">${p.name} <span class="text-teal-700 font-semibold ml-1">📞 ${p.phone}</span></p>
-          <p class="text-slate-500">${p.dept}</p>
-        </div>
-      </div>
-      <span class="text-slate-400 text-[11px]">${new Date(p.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
-    </div>
-  `).join("") : `<p class="text-xs text-slate-400 italic text-center py-6">No completed patient records found for ${selectedDate}.</p>`;
-  document.getElementById('archive-modal').classList.remove('hidden');
-}
-
-function closeArchiveModal() {
-  document.getElementById('archive-modal').classList.add('hidden');
-}
-
-function exportDailyArchiveCSV() {
-  const selectedDate = document.getElementById('archive-date-filter').value || new Date().toISOString().slice(0, 10);
-  const completedPatients = state.patients.filter(p => {
-    if (p.status !== 'completed') return false;
-    return new Date(p.timestamp).toISOString().slice(0, 10) === selectedDate;
-  });
-
-  const csvContent = "data:text/csv;charset=utf-8," 
-    + ["Ticket ID, Patient Name, Phone Number, Department, Status, Priority, Triage, Timestamp"].join(",") + "\n"
-    + completedPatients.map(p => `${p.id},"${p.name}","${p.phone}","${p.dept}",${p.status},${p.priority ? 'YES' : 'NO'},${p.triage},${p.timestamp}`).join("\n");
-  const encodedUri = encodeURI(csvContent);
-  const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
-  link.setAttribute("download", `${currentTenant}_Completed_Records_${selectedDate}.csv`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
-function openComplaintsModal() {
-  const listEl = document.getElementById('complaints-list');
-  const countBadge = document.getElementById('complaints-badge-count');
-  countBadge.innerText = state.complaints.length;
-  document.getElementById('complaints-modal-title').innerText = `Support Tickets - ${hospitalTenants[currentTenant].name}`;
-  document.getElementById('complaints-total-text').innerText = `Total Active Tickets: ${state.complaints.length}`;
-
-  listEl.innerHTML = state.complaints.length > 0 ? state.complaints.map((c, idx) => `
-    <div class="p-3 bg-rose-50/60 border border-rose-200 rounded-xl space-y-1 text-xs">
-      <div class="flex justify-between items-center font-bold">
-        <span class="text-rose-800">${c.category}</span>
-        <span class="text-slate-400 font-normal text-[10px]">${new Date(c.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
-      </div>
-      <p class="text-slate-900 font-semibold">Submitted By: ${c.user}</p>
-      <p class="text-slate-700 bg-white p-2 rounded border border-rose-100">${c.description}</p>
-      <div class="text-right pt-1">
-        <button onclick="dismissComplaint(${idx})" class="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-[10px] font-bold">Resolve & Dismiss</button>
-      </div>
-    </div>
-  `).join("") : `<p class="text-xs text-slate-400 italic text-center py-6">No active complaint or issue tickets logged for this hospital.</p>`;
-  
-  document.getElementById('complaints-modal').classList.remove('hidden');
-}
-
-function closeComplaintsModal() {
-  document.getElementById('complaints-modal').classList.add('hidden');
-}
-
-function dismissComplaint(index) {
-  state.complaints.splice(index, 1);
-  saveState();
-  openComplaintsModal();
-}
-
-function openComplaintModal() {
-  document.getElementById('patient-complaint-modal').classList.remove('hidden');
-}
-
-function closeComplaintModal() {
-  document.getElementById('patient-complaint-modal').classList.add('hidden');
-}
-
-function submitIssueReport(e) {
-  e.preventDefault();
-  const user = document.getElementById('issue-user').value.trim();
-  const category = document.getElementById('issue-category').value;
-  const description = document.getElementById('issue-desc').value.trim();
-
-  const newComplaint = {
-    user,
-    category,
-    description,
-    timestamp: new Date().toISOString()
+  window.showNotificationBanner = function(message) {
+    window.playNotificationChime();
+    const banner = document.getElementById('notificationBanner');
+    const textEl = document.getElementById('notification-banner-text');
+    if (!banner || !textEl) return;
+    textEl.innerText = message;
+    banner.classList.remove('hidden', '-translate-y-24');
+    banner.classList.add('translate-y-0');
+    setTimeout(() => {
+      banner.classList.remove('translate-y-0');
+      banner.classList.add('-translate-y-24');
+    }, 12000);
   };
 
-  state.complaints.push(newComplaint);
-  saveState();
-
-  document.getElementById('issue-form').reset();
-  closeComplaintModal();
-
-  showSmsToast("Issue ticket logged successfully. Staff notified!", "Support Report Submitted");
-  showNotificationBanner("🚨 Your issue ticket has been submitted to staff!");
-}
-
-function openTransferModal(id) {
-  const p = state.patients.find(pt => pt.id === id);
-  if (!p) return;
-  activeTransferPatientId = id;
-  document.getElementById('transfer-patient-info').innerText = `${p.name} (${p.dept})`;
-  document.getElementById('transfer-patient-ticket').innerText = `Current Ticket: ${p.id}`;
-  document.getElementById('transfer-modal').classList.remove('hidden');
-}
-
-function closeTransferModal() {
-  document.getElementById('transfer-modal').classList.add('hidden');
-  activeTransferPatientId = null;
-}
-
-function executeTransfer() {
-  if (!activeTransferPatientId) return;
-  const idx = state.patients.findIndex(p => p.id === activeTransferPatientId);
-  if (idx === -1) return;
-  const select = document.getElementById('transfer-target-dept');
-  const targetDept = select.value;
-  const prefix = select.options[select.selectedIndex].getAttribute('data-prefix');
-  const newId = `${prefix}-${Math.floor(100 + Math.random() * 900)}`;
-  state.patients[idx].id = newId;
-  state.patients[idx].dept = targetDept;
-  state.patients[idx].status = 'waiting';
-  state.patients[idx].priority = true;
-  state.patients[idx].earlyWarningSent = false;
-  state.patients[idx].timestamp = new Date().toISOString();
-  saveState();
-  closeTransferModal();
-  showSmsToast(`SMS Sent: Priority Referral #${newId} dispatched to ${targetDept}.`);
-}
-
-function switchView(viewName) {
-  ['patient', 'display', 'staff', 'exec'].forEach(v => {
-    const viewEl = document.getElementById(`view-${v}`);
-    const navEl = document.getElementById(`nav-${v}`);
-    if (viewEl) viewEl.classList.add('hidden');
-    if (navEl) navEl.className = "px-3 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white flex items-center gap-1";
-  });
-  const targetView = document.getElementById(`view-${viewName}`);
-  const targetNav = document.getElementById(`nav-${viewName}`);
-  if (targetView) targetView.classList.remove('hidden');
-  if (targetNav) targetNav.className = "px-3 py-1.5 rounded-md font-medium transition text-white bg-teal-600 shadow-sm flex items-center gap-1";
-  if (viewName === 'exec') renderChart();
-  if (viewName === 'staff' || viewName === 'display' || viewName === 'patient') render();
-}
-
-function handleCheckIn(e) {
-  e.preventDefault();
-  const name = document.getElementById('patient-name').value;
-  const phone = document.getElementById('patient-phone').value;
-  const select = document.getElementById('patient-dept');
-  const selectedOption = select.options[select.selectedIndex];
-  const dept = select.value;
-  const prefix = selectedOption.getAttribute('data-prefix');
-  const ticketNum = prefix + '-' + Math.floor(100 + Math.random() * 900);
-  const newTicket = {
-    id: ticketNum,
-    name: name,
-    phone: phone,
-    dept: dept,
-    status: 'waiting',
-    priority: false,
-    triage: 'normal',
-    fileReady: true,
-    earlyWarningSent: false
-  };
-  
-  // Dispatches directly to Firebase Cloud via the module script function
-  if (typeof dispatchAndUpdateServer === 'function') {
-    dispatchAndUpdateServer(newTicket);
-  }
-  
-  document.getElementById('checkin-form').reset();
-  updateDynamicWaitEstimate();
-  showSmsToast(`SMS Sent: Ticket #${ticketNum} confirmed for ${dept}.`);
-}
-
-function updateStatus(id, newStatus) {
-  const idx = state.patients.findIndex(p => p.id === id);
-  if (idx !== -1) {
-    state.patients[idx].status = newStatus;
-    saveState();
-    if (newStatus === 'progress') {
-      showSmsToast(`SMS Alert: Ticket #${id} called to room.`);
-      showNotificationBanner(`🎉 Ticket #${id} has been called!`);
+  window.checkQueueWarning = function(estimatedMinutesRemaining) {
+    if (estimatedMinutesRemaining > 0 && estimatedMinutesRemaining <= 30) {
+      window.showNotificationBanner("⚠️ Notice: You have less than 30 minutes waiting time. Please make your way back to the waiting room.");
     }
-  }
-}
+  };
 
-function render() {
-  const queueList = document.getElementById('patient-queue-list');
-  if (queueList) {
-    queueList.innerHTML = state.patients.map(p => `
-      <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+  window.openWebhookModal = function() {
+    document.getElementById('hook-checkin').value = window.n8nConfig.checkinUrl;
+    document.getElementById('hook-alert').value = window.n8nConfig.alertUrl;
+    document.getElementById('webhook-modal').classList.remove('hidden');
+  };
+
+  window.closeWebhookModal = function() {
+    document.getElementById('webhook-modal').classList.add('hidden');
+  };
+
+  window.saveWebhookSettings = function() {
+    window.n8nConfig.checkinUrl = document.getElementById('hook-checkin').value.trim();
+    window.n8nConfig.alertUrl = document.getElementById('hook-alert').value.trim();
+    localStorage.setItem(keys.n8n, JSON.stringify(window.n8nConfig));
+    window.closeWebhookModal();
+    window.updateWebhookStatusDot();
+    window.showSmsToast("n8n Webhook settings saved for " + window.hospitalTenants[window.currentTenant].name, "Connected");
+  };
+
+  window.updateWebhookStatusDot = function() {
+    const dot = document.getElementById('webhook-status-dot');
+    if (dot) {
+      dot.className = (window.n8nConfig.checkinUrl || window.n8nConfig.alertUrl) ? "w-2 h-2 rounded-full bg-emerald-500 animate-pulse" : "w-2 h-2 rounded-full bg-amber-500";
+    }
+  };
+
+  window.dispatchWebhook = async function(targetUrl, payload) {
+    if (!targetUrl) return;
+    try {
+      await fetch(targetUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenant: window.currentTenant, ...payload })
+      });
+    } catch (err) {
+      console.warn("n8n Webhook dispatch note: Fallback mode engaged.", err);
+    }
+  };
+
+  window.showSmsToast = function(msg, title = "System Notification") {
+    const toast = document.getElementById('sms-toast');
+    const text = document.getElementById('sms-toast-text');
+    const titleEl = document.getElementById('toast-title');
+    titleEl.innerText = title;
+    text.innerText = msg;
+    toast.classList.remove('translate-y-[-200%]');
+    setTimeout(() => {
+      toast.classList.add('translate-y-[-200%]');
+    }, 4000);
+  };
+
+  window.updateDynamicWaitEstimate = function() {
+    const select = document.getElementById('patient-dept');
+    if (!select) return;
+    const selectedOption = select.options[select.selectedIndex];
+    const selectedDept = select.value;
+    const avgMinutesPerPerson = parseInt(selectedOption.getAttribute('data-avg')) || 10;
+    const waitingAhead = window.state.patients.filter(p => p.dept === selectedDept && p.status === 'waiting').length;
+    const totalEstimatedMinutes = waitingAhead * avgMinutesPerPerson + Math.round(avgMinutesPerPerson / 2);
+    document.getElementById('est-time-text').innerText = `~ ${totalEstimatedMinutes} mins`;
+    document.getElementById('est-people-text').innerText = `${waitingAhead} people waiting ahead of you in this category.`;
+  };
+
+  window.requestAdminAccess = function(targetView) {
+    if (window.isAdminUnlocked) {
+      window.switchView(targetView);
+    } else {
+      window.pendingTargetView = targetView;
+      document.getElementById('admin-modal').classList.remove('hidden');
+      document.getElementById('admin-pin').focus();
+    }
+  };
+
+  window.verifyAdminPin = function() {
+    const pinInput = document.getElementById('admin-pin').value;
+    if (pinInput === window.currentAdminPin) {
+      window.isAdminUnlocked = true;
+      window.closeAdminModal();
+      if (window.pendingTargetView) window.switchView(window.pendingTargetView);
+    } else {
+      document.getElementById('pin-error').classList.remove('hidden');
+    }
+  };
+
+  window.closeAdminModal = function() {
+    document.getElementById('admin-modal').classList.add('hidden');
+    document.getElementById('admin-pin').value = "";
+    document.getElementById('pin-error').classList.add('hidden');
+  };
+
+  window.lockAdminSession = function() {
+    window.isAdminUnlocked = false;
+    window.switchView('patient');
+    alert('Admin session locked successfully.');
+  };
+
+  window.openChangePinModal = function() {
+    document.getElementById('change-pin-modal').classList.remove('hidden');
+    document.getElementById('pin-current').focus();
+  };
+
+  window.closeChangePinModal = function() {
+    document.getElementById('change-pin-modal').classList.add('hidden');
+    document.getElementById('pin-current').value = "";
+    document.getElementById('pin-new').value = "";
+    document.getElementById('pin-confirm').value = "";
+    document.getElementById('change-pin-error').classList.add('hidden');
+  };
+
+  window.saveNewPin = function() {
+    const curr = document.getElementById('pin-current').value;
+    const newPin = document.getElementById('pin-new').value;
+    const confirmPin = document.getElementById('pin-confirm').value;
+    const errBox = document.getElementById('change-pin-error');
+    if (curr !== window.currentAdminPin) {
+      errBox.innerText = "Current PIN is incorrect.";
+      errBox.classList.remove('hidden');
+      return;
+    }
+    if (!newPin || newPin.length < 4) {
+      errBox.innerText = "New PIN must be at least 4 digits.";
+      errBox.classList.remove('hidden');
+      return;
+    }
+    if (newPin !== confirmPin) {
+      errBox.innerText = "New PIN and Confirm PIN do not match.";
+      errBox.classList.remove('hidden');
+      return;
+    }
+    window.currentAdminPin = newPin;
+    localStorage.setItem(keys.pin, newPin);
+    window.closeChangePinModal();
+    alert("Security PIN successfully updated!");
+    window.lockAdminSession();
+  };
+
+  window.openArchiveModal = function() {
+    const dateInput = document.getElementById('archive-date-filter');
+    if (!dateInput.value) {
+      dateInput.value = new Date().toISOString().slice(0, 10);
+    }
+    const selectedDate = dateInput.value;
+    const completedPatients = window.state.patients.filter(p => {
+      if (p.status !== 'completed') return false;
+      return new Date(p.timestamp).toISOString().slice(0, 10) === selectedDate;
+    });
+    const listEl = document.getElementById('archive-list');
+    document.getElementById('archive-badge-count').innerText = window.state.patients.filter(p => p.status === 'completed').length;
+    document.getElementById('archive-total-text').innerText = `Total Attended on ${selectedDate}: ${completedPatients.length}`;
+    
+    listEl.innerHTML = completedPatients.length > 0 ? completedPatients.map(p => `
+      <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs">
         <div class="flex items-center space-x-3">
-          <span class="font-bold text-base px-3 py-1 ${p.priority ? 'bg-amber-600' : p.triage === 'urgent' ? 'bg-rose-600' : 'bg-slate-900'} text-white rounded-lg tracking-wider">${p.id}</span>
+          <span class="font-bold px-2 py-1 bg-slate-900 text-white rounded">${p.id}</span>
           <div>
-            <p class="text-sm font-semibold text-slate-900">${p.name} ${p.priority ? '<span class="text-[10px] text-amber-600 font-bold ml-1">(Referral)</span>' : ''} ${p.triage === 'urgent' ? '<span class="text-[10px] text-rose-600 font-bold ml-1">(Urgent)</span>' : ''}</p>
-            <p class="text-xs text-slate-500">${p.dept}</p>
+            <p class="font-bold text-slate-900">${p.name} <span class="text-teal-700 font-semibold ml-1">📞 ${p.phone}</span></p>
+            <p class="text-slate-500">${p.dept}</p>
           </div>
         </div>
-        <div class="text-right">
-          <span class="text-xs font-semibold px-2.5 py-1 rounded-full ${p.status === 'waiting' ? 'bg-amber-100 text-amber-800' : p.status === 'progress' ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800'}">${p.status.toUpperCase()}</span>
-        </div>
+        <span class="text-slate-400 text-[11px]">${new Date(p.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
       </div>
-    `).join("");
-  }
-  const callingDisplay = document.getElementById('display-calling-list');
-  const waitingDisplay = document.getElementById('display-waiting-list');
-  if (callingDisplay && waitingDisplay) {
-    const calling = state.patients.filter(p => p.status === 'progress');
-    const waiting = state.patients.filter(p => p.status === 'waiting').slice(0, 5);
-    callingDisplay.innerHTML = calling.length > 0 ? calling.map(p => `
-      <div class="p-4 bg-teal-800/90 rounded-xl border border-teal-500 flex justify-between items-center shadow-lg">
-        <div>
-          <p class="text-3xl font-extrabold tracking-wider text-amber-300">${p.id}</p>
-          <p class="text-xs text-teal-200 mt-0.5">${p.dept}</p>
-        </div>
-        <span class="px-3 py-1.5 bg-emerald-500 text-slate-900 font-extrabold rounded-lg text-xs tracking-wider">ROOM READY</span>
-      </div>
-    `).join("") : `<p class="text-xs text-teal-300 italic">No patients currently being called.</p>`;
-    waitingDisplay.innerHTML = waiting.length > 0 ? waiting.map(p => `
-      <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex justify-between items-center">
-        <span class="font-bold text-lg text-slate-900">${p.id}</span>
-        <span class="text-xs font-medium text-slate-500">${p.dept}</span>
-      </div>
-    `).join("") : `<p class="text-xs text-slate-400 italic">No patients in waiting queue.</p>`;
-  }
-  const stationFilter = document.getElementById('staff-station-filter');
-  const selectedStation = stationFilter ? stationFilter.value : 'ALL';
-  const statusBadge = document.getElementById('station-status-badge');
-  if (statusBadge) {
-    statusBadge.innerText = selectedStation === 'ALL' ? "Showing: All Stations" : `Station: ${selectedStation}`;
-  }
-  let filteredPatients = selectedStation === 'ALL' ? state.patients : state.patients.filter(p => p.dept === selectedStation);
-  
-  filteredPatients.sort((a, b) => {
-    const aUrgent = (a.triage === 'urgent' || a.priority);
-    const bUrgent = (b.triage === 'urgent' || b.priority);
-    if (aUrgent !== bUrgent) return bUrgent - aUrgent;
-    return new Date(a.timestamp || 0) - new Date(b.timestamp || 0);
-  });
-  
-  const totalCompletedCount = state.patients.filter(p => p.status === 'completed').length;
-  const badgeEl = document.getElementById('archive-badge-count');
-  if (badgeEl) badgeEl.innerText = totalCompletedCount;
+    `).join("") : `<p class="text-xs text-slate-400 italic text-center py-6">No completed patient records found for ${selectedDate}.</p>`;
+    document.getElementById('archive-modal').classList.remove('hidden');
+  };
 
-  const complaintsBadge = document.getElementById('complaints-badge-count');
-  if (complaintsBadge) complaintsBadge.innerText = state.complaints.length;
+  window.closeArchiveModal = function() {
+    document.getElementById('archive-modal').classList.add('hidden');
+  };
 
-  ['waiting', 'progress', 'completed'].forEach(col => {
-    let colPatients = filteredPatients.filter(p => p.status === col);
-    const totalColCount = colPatients.length;
-    if (col === 'completed') {
-      colPatients = colPatients.slice(0, 4);
-    }
-    const countEl = document.getElementById(`count-${col}`);
-    const colEl = document.getElementById(`col-${col}`);
-    if (countEl) {
-      countEl.innerText = col === 'completed' ? `${colPatients.length} shown (${totalColCount} total)` : totalColCount;
-    }
-    if (colEl) {
-      colEl.innerHTML = colPatients.map(p => `
-        <div class="p-3.5 bg-white border ${p.triage === 'urgent' ? 'border-rose-400 ring-2 ring-rose-200' : p.priority ? 'border-amber-300 ring-1 ring-amber-300' : 'border-slate-200'} rounded-xl shadow-sm space-y-2">
-          <div class="flex justify-between items-start">
-            <span class="font-bold text-xs px-2 py-0.5 ${p.triage === 'urgent' ? 'bg-rose-600 text-white' : p.priority ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-800'} rounded border tracking-wider">${p.id}</span>
-            <span class="text-[10px] text-slate-400">${p.timestamp ? new Date(p.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : ''}</span>
+  window.exportDailyArchiveCSV = function() {
+    const selectedDate = document.getElementById('archive-date-filter').value || new Date().toISOString().slice(0, 10);
+    const completedPatients = window.state.patients.filter(p => {
+      if (p.status !== 'completed') return false;
+      return new Date(p.timestamp).toISOString().slice(0, 10) === selectedDate;
+    });
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + ["Ticket ID, Patient Name, Phone Number, Department, Status, Priority, Triage, Timestamp"].join(",") + "\n"
+      + completedPatients.map(p => `${p.id},"${p.name}","${p.phone}","${p.dept}",${p.status},${p.priority ? 'YES' : 'NO'},${p.triage},${p.timestamp}`).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `${window.currentTenant}_Completed_Records_${selectedDate}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  window.openComplaintsModal = function() {
+    const listEl = document.getElementById('complaints-list');
+    const countBadge = document.getElementById('complaints-badge-count');
+    countBadge.innerText = window.state.complaints.length;
+    document.getElementById('complaints-modal-title').innerText = `Support Tickets - ${window.hospitalTenants[window.currentTenant].name}`;
+    document.getElementById('complaints-total-text').innerText = `Total Active Tickets: ${window.state.complaints.length}`;
+    listEl.innerHTML = window.state.complaints.length > 0 ? window.state.complaints.map((c) => `
+      <div class="p-3 bg-rose-50/60 border border-rose-200 rounded-xl space-y-1 text-xs">
+        <div class="flex justify-between items-center font-bold">
+          <span class="text-rose-800">${c.category}</span>
+          <span class="text-slate-400 font-normal text-[10px]">${new Date(c.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+        </div>
+        <p class="text-slate-900 font-semibold">Submitted By: ${c.user}</p>
+        <p class="text-slate-700 bg-white p-2 rounded border border-rose-100">${c.description}</p>
+        <div class="text-right pt-1">
+          <button onclick="dismissComplaint('${c.docId}')" class="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-[10px] font-bold">Resolve & Dismiss</button>
+        </div>
+      </div>
+    `).join("") : `<p class="text-xs text-slate-400 italic text-center py-6">No active complaint or issue tickets logged for this hospital.</p>`;
+    
+    document.getElementById('complaints-modal').classList.remove('hidden');
+  };
+
+  window.closeComplaintsModal = function() {
+    document.getElementById('complaints-modal').classList.add('hidden');
+  };
+
+  window.openComplaintModal = function() {
+    document.getElementById('patient-complaint-modal').classList.remove('hidden');
+  };
+
+  window.closeComplaintModal = function() {
+    document.getElementById('patient-complaint-modal').classList.add('hidden');
+  };
+
+  window.openTransferModal = function(id) {
+    const p = window.state.patients.find(pt => pt.id === id);
+    if (!p) return;
+    window.activeTransferPatientId = id;
+    document.getElementById('transfer-patient-info').innerText = `${p.name} (${p.dept})`;
+    document.getElementById('transfer-patient-ticket').innerText = `Current Ticket: ${p.id}`;
+    document.getElementById('transfer-modal').classList.remove('hidden');
+  };
+
+  window.closeTransferModal = function() {
+    document.getElementById('transfer-modal').classList.add('hidden');
+    window.activeTransferPatientId = null;
+  };
+
+  window.switchView = function(viewName) {
+    ['patient', 'display', 'staff', 'exec'].forEach(v => {
+      const viewEl = document.getElementById(`view-${v}`);
+      const navEl = document.getElementById(`nav-${v}`);
+      if (viewEl) viewEl.classList.add('hidden');
+      if (navEl) navEl.className = "px-3 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white flex items-center gap-1";
+    });
+    const targetView = document.getElementById(`view-${viewName}`);
+    const targetNav = document.getElementById(`nav-${viewName}`);
+    if (targetView) targetView.classList.remove('hidden');
+    if (targetNav) targetNav.className = "px-3 py-1.5 rounded-md font-medium transition text-white bg-teal-600 shadow-sm flex items-center gap-1";
+    if (viewName === 'exec') window.renderChart();
+    if (viewName === 'staff' || viewName === 'display' || viewName === 'patient') window.render();
+  };
+
+  window.render = function() {
+    const queueList = document.getElementById('patient-queue-list');
+    if (queueList) {
+      queueList.innerHTML = window.state.patients.map(p => `
+        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <span class="font-bold text-base px-3 py-1 ${p.priority ? 'bg-amber-600' : p.triage === 'urgent' ? 'bg-rose-600' : 'bg-slate-900'} text-white rounded-lg tracking-wider">${p.id}</span>
+            <div>
+              <p class="text-sm font-semibold text-slate-900">${p.name} ${p.priority ? '<span class="text-[10px] text-amber-600 font-bold ml-1">(Referral)</span>' : ''} ${p.triage === 'urgent' ? '<span class="text-[10px] text-rose-600 font-bold ml-1">(Urgent)</span>' : ''}</p>
+              <p class="text-xs text-slate-500">${p.dept}</p>
+            </div>
           </div>
-          <div>
-            <p class="text-sm font-bold text-slate-900">${p.name}</p>
-            <p class="text-xs text-teal-700 font-semibold flex items-center gap-1 mt-0.5">📞 ${p.phone}</p>
-          </div>
-          <p class="text-xs text-slate-500">${p.dept}</p>
-          <div class="flex items-center justify-between text-[11px] pt-1 border-t border-slate-100">
-            <button onclick="toggleFileReady('${p.id}')" class="font-medium ${p.fileReady ? 'text-emerald-700' : 'text-slate-400 hover:text-slate-600'}">${p.fileReady ? '📁 Paper File Ready' : '⏳ File Pending...'}</button>
-            <button onclick="toggleTriage('${p.id}')" class="font-bold ${p.triage === 'urgent' ? 'text-rose-600' : 'text-slate-400 hover:text-slate-600'}">${p.triage === 'urgent' ? '🔥 URGENT' : '+ Mark Urgent'}</button>
-          </div>
-          <div class="pt-2 border-t border-slate-100 flex flex-col gap-1.5">
-            ${col === 'waiting' ? `
-              <button onclick="updateStatus('${p.id}', 'progress')" class="w-full py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold">Call Patient</button>
-              <button onclick="manualTriggerEarlyWarning('${p.id}')" class="w-full py-1 ${p.earlyWarningSent ? 'bg-slate-100 text-slate-500' : 'bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200'} rounded text-xs font-semibold flex items-center justify-center gap-1">${p.earlyWarningSent ? '✓ 30m Warning Sent' : '🔔 Send 30m Warning SMS'}</button>
-            ` : ''}
-            ${col === 'progress' ? `
-              <button onclick="updateStatus('${p.id}', 'completed')" class="w-full py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-semibold">Complete Visit</button>
-              <button onclick="openTransferModal('${p.id}')" class="w-full py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded text-xs font-semibold flex items-center justify-center gap-1">Transfer / Prescribe</button>
-            ` : ''}
-            ${col === 'completed' ? '<span class="text-xs text-emerald-600 font-semibold">Archived in Folder ✓</span>' : ''}
+          <div class="text-right">
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-full ${p.status === 'waiting' ? 'bg-amber-100 text-amber-800' : p.status === 'progress' ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800'}">${p.status.toUpperCase()}</span>
           </div>
         </div>
       `).join("");
     }
-  });
-  const totalKpi = document.getElementById('kpi-total');
-  if (totalKpi) totalKpi.innerText = state.patients.length;
-}
+    const callingDisplay = document.getElementById('display-calling-list');
+    const waitingDisplay = document.getElementById('display-waiting-list');
+    if (callingDisplay && waitingDisplay) {
+      const calling = window.state.patients.filter(p => p.status === 'progress');
+      const waiting = window.state.patients.filter(p => p.status === 'waiting').slice(0, 5);
+      callingDisplay.innerHTML = calling.length > 0 ? calling.map(p => `
+        <div class="p-4 bg-teal-800/90 rounded-xl border border-teal-500 flex justify-between items-center shadow-lg">
+          <div>
+            <p class="text-3xl font-extrabold tracking-wider text-amber-300">${p.id}</p>
+            <p class="text-xs text-teal-200 mt-0.5">${p.dept}</p>
+          </div>
+          <span class="px-3 py-1.5 bg-emerald-500 text-slate-900 font-extrabold rounded-lg text-xs tracking-wider">ROOM READY</span>
+        </div>
+      `).join("") : `<p class="text-xs text-teal-300 italic">No patients currently being called.</p>`;
+      waitingDisplay.innerHTML = waiting.length > 0 ? waiting.map(p => `
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex justify-between items-center">
+          <span class="font-bold text-lg text-slate-900">${p.id}</span>
+          <span class="text-xs font-medium text-slate-500">${p.dept}</span>
+        </div>
+      `).join("") : `<p class="text-xs text-slate-400 italic">No patients in waiting queue.</p>`;
+    }
+    const stationFilter = document.getElementById('staff-station-filter');
+    const selectedStation = stationFilter ? stationFilter.value : 'ALL';
+    const statusBadge = document.getElementById('station-status-badge');
+    if (statusBadge) {
+      statusBadge.innerText = selectedStation === 'ALL' ? "Showing: All Stations" : `Station: ${selectedStation}`;
+    }
+    let filteredPatients = selectedStation === 'ALL' ? window.state.patients : window.state.patients.filter(p => p.dept === selectedStation);
+    
+    filteredPatients.sort((a, b) => {
+      const aUrgent = (a.triage === 'urgent' || a.priority);
+      const bUrgent = (b.triage === 'urgent' || b.priority);
+      if (aUrgent !== bUrgent) return bUrgent - aUrgent;
+      return new Date(a.timestamp) - new Date(b.timestamp);
+    });
+    
+    const totalCompletedCount = window.state.patients.filter(p => p.status === 'completed').length;
+    const badgeEl = document.getElementById('archive-badge-count');
+    if (badgeEl) badgeEl.innerText = totalCompletedCount;
+    const complaintsBadge = document.getElementById('complaints-badge-count');
+    if (complaintsBadge) complaintsBadge.innerText = window.state.complaints.length;
+    ['waiting', 'progress', 'completed'].forEach(col => {
+      let colPatients = filteredPatients.filter(p => p.status === col);
+      const totalColCount = colPatients.length;
+      if (col === 'completed') {
+        colPatients = colPatients.slice(0, 4);
+      }
+      const countEl = document.getElementById(`count-${col}`);
+      const colEl = document.getElementById(`col-${col}`);
+      if (countEl) {
+        countEl.innerText = col === 'completed' ? `${colPatients.length} shown (${totalColCount} total)` : totalColCount;
+      }
+      if (colEl) {
+        colEl.innerHTML = colPatients.map(p => `
+          <div class="p-3.5 bg-white border ${p.triage === 'urgent' ? 'border-rose-400 ring-2 ring-rose-200' : p.priority ? 'border-amber-300 ring-1 ring-amber-300' : 'border-slate-200'} rounded-xl shadow-sm space-y-2">
+            <div class="flex justify-between items-start">
+              <span class="font-bold text-xs px-2 py-0.5 ${p.triage === 'urgent' ? 'bg-rose-600 text-white' : p.priority ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-800'} rounded border tracking-wider">${p.id}</span>
+              <span class="text-[10px] text-slate-400">${new Date(p.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+            </div>
+            <div>
+              <p class="text-sm font-bold text-slate-900">${p.name}</p>
+              <p class="text-xs text-teal-700 font-semibold flex items-center gap-1 mt-0.5">📞 ${p.phone}</p>
+            </div>
+            <p class="text-xs text-slate-500">${p.dept}</p>
+            <div class="flex items-center justify-between text-[11px] pt-1 border-t border-slate-100">
+              <button onclick="toggleFileReady('${p.id}')" class="font-medium ${p.fileReady ? 'text-emerald-700' : 'text-slate-400 hover:text-slate-600'}">${p.fileReady ? '📁 Paper File Ready' : '⏳ File Pending...'}</button>
+              <button onclick="toggleTriage('${p.id}')" class="font-bold ${p.triage === 'urgent' ? 'text-rose-600' : 'text-slate-400 hover:text-slate-600'}">${p.triage === 'urgent' ? '🔥 URGENT' : '+ Mark Urgent'}</button>
+            </div>
+            <div class="pt-2 border-t border-slate-100 flex flex-col gap-1.5">
+              ${col === 'waiting' ? `
+                <button onclick="updateStatus('${p.id}', 'progress')" class="w-full py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold">Call Patient</button>
+                <button onclick="manualTriggerEarlyWarning('${p.id}')" class="w-full py-1 ${p.earlyWarningSent ? 'bg-slate-100 text-slate-500' : 'bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200'} rounded text-xs font-semibold flex items-center justify-center gap-1">${p.earlyWarningSent ? '✓ 30m Warning Sent' : '🔔 Send 30m Warning SMS'}</button>
+              ` : ''}
+              ${col === 'progress' ? `
+                <button onclick="updateStatus('${p.id}', 'completed')" class="w-full py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-semibold">Complete Visit</button>
+                <button onclick="openTransferModal('${p.id}')" class="w-full py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded text-xs font-semibold flex items-center justify-center gap-1">Transfer / Prescribe</button>
+              ` : ''}
+              ${col === 'completed' ? '<span class="text-xs text-emerald-600 font-semibold">Archived in Folder ✓</span>' : ''}
+            </div>
+          </div>
+        `).join("");
+      }
+    });
+    const totalKpi = document.getElementById('kpi-total');
+    if (totalKpi) totalKpi.innerText = window.state.patients.length;
+  };
 
-function exportAuditData() {
-  const csvContent = "data:text/csv;charset=utf-8," 
-    + ["Ticket ID, Patient Name, Phone Number, Department, Status, Priority, Triage, Timestamp"].join(",") + "\n"
-    + state.patients.map(p => `${p.id},"${p.name}","${p.phone}","${p.dept}",${p.status},${p.priority ? 'YES' : 'NO'},${p.triage},${p.timestamp}`).join("\n");
-  const encodedUri = encodeURI(csvContent);
-  const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
-  link.setAttribute("download", `${currentTenant}_Audit_Log_${new Date().toISOString().slice(0,10)}.csv`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
+  window.exportAuditData = function() {
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + ["Ticket ID, Patient Name, Phone Number, Department, Status, Priority Referral, Triage, File Ready, 30m Warning Sent, Timestamp"].join(",") + "\n"
+      + window.state.patients.map(p => `${p.id},"${p.name}","${p.phone}","${p.dept}",${p.status},${p.priority ? 'YES' : 'NO'},${p.triage},${p.fileReady ? 'YES' : 'NO'},${p.earlyWarningSent ? 'YES' : 'NO'},${p.timestamp}`).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `${window.currentTenant}_Audit_Log_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
-let chartInstance = null;
-function renderChart() {
-  const ctx = document.getElementById('execChart').getContext('2d');
-  if (!ctx) return;
-  const depts = ['Pharmacy (Z)', 'Maternity (E)', 'Outpatients (A)', 'Emergency (X)', 'Pediatrics (P)', 'Dental (D)', 'Orthopedics (B)', 'Admin (F)'];
-  const prefixes = ['Z', 'E', 'A', 'X', 'P', 'D', 'B', 'F'];
-  const counts = prefixes.map(prefix => state.patients.filter(p => p.id.startsWith(prefix)).length);
-  if (chartInstance) chartInstance.destroy();
-  chartInstance = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: depts,
-      datasets: [{ label: 'Total Patients Today', data: counts, backgroundColor: '#0d9488', borderRadius: 6 }]
-    },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-  });
-}
+  let chartInstance = null;
+  window.renderChart = function() {
+    const chartEl = document.getElementById('execChart');
+    if (!chartEl) return;
+    const ctx = chartEl.getContext('2d');
+    if (!ctx) return;
+    const depts = ['Pharmacy (Z)', 'Maternity (E)', 'Outpatients (A)', 'Emergency (X)', 'Pediatrics (P)', 'Dental (D)', 'Orthopedics (B)', 'Admin (F)'];
+    const prefixes = ['Z', 'E', 'A', 'X', 'P', 'D', 'B', 'F'];
+    const counts = prefixes.map(prefix => window.state.patients.filter(p => p.id.startsWith(prefix)).length);
+    if (chartInstance) chartInstance.destroy();
+    chartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: depts,
+        datasets: [{ label: 'Total Patients Today', data: counts, backgroundColor: '#0d9488', borderRadius: 6 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+  };
 
-// Initial language setup
-setLanguage('en');
+  // Initial Sync Start
+  window.switchHospitalTenant(window.currentTenant);
+  window.setLanguage('en');
 </script>
 </body>
 </html>
