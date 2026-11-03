@@ -123,19 +123,23 @@ body { font-family: 'Inter', sans-serif; }
           <button type="submit" id="btn-submit" class="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg text-sm transition shadow-md hover:shadow-lg">Get Queue Ticket</button>
         </form>
       </div>
-      <!-- Live Queue Display -->
+      <!-- Live Queue Display with Search -->
       <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
-        <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 pb-2 border-b border-slate-100">
           <div>
             <h3 class="font-semibold text-lg text-slate-900" id="lbl-queue-title">Current Queue Status</h3>
             <p class="text-xs text-slate-500">Live ticket numbers being attended to across departments</p>
           </div>
-          <span class="text-xs text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full font-medium">Tenant Isolated</span>
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <input type="text" id="patient-search-input" onkeyup="render()" placeholder="🔍 Search ticket or name..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-teal-500 w-full sm:w-48">
+            <span class="text-xs text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full font-medium whitespace-nowrap">Tenant Isolated</span>
+          </div>
         </div>
         <div id="patient-queue-list" class="space-y-3 flex-1 overflow-y-auto max-h-[440px] pr-1"></div>
       </div>
     </div>
   </section>
+
   <!-- VIEW 2: LOBBY TV DISPLAY MODE -->
   <section id="view-display" class="hidden space-y-6">
     <div class="bg-slate-900 text-white rounded-2xl p-6 shadow-2xl border border-slate-800 text-center">
@@ -157,6 +161,7 @@ body { font-family: 'Inter', sans-serif; }
       </div>
     </div>
   </section>
+
   <!-- VIEW 3: STAFF BOARD (RESTRICTED) -->
   <section id="view-staff" class="hidden space-y-6">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
@@ -175,21 +180,24 @@ body { font-family: 'Inter', sans-serif; }
         <button onclick="lockAdminSession()" class="px-3 py-2 bg-slate-800 text-white rounded-lg text-xs font-semibold hover:bg-slate-700">Lock Session</button>
       </div>
     </div>
-    <!-- Station Filter Bar -->
+    <!-- Station Filter & Staff Search Bar -->
     <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-      <div class="flex items-center space-x-3 w-full sm:w-auto">
-        <label class="text-xs font-bold text-slate-700 uppercase tracking-wider whitespace-nowrap">Select Your Station:</label>
-        <select id="staff-station-filter" onchange="render()" class="w-full sm:w-80 px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold outline-none focus:ring-2 focus:ring-teal-500">
-          <option value="ALL">All Hospital Stations (Main Reception / Admin)</option>
-          <option value="Medication & Pharmacy Pick-up">Medication & Pharmacy Pick-up (Z)</option>
-          <option value="Maternity & Pregnancy Care">Maternity & Pregnancy Care (E)</option>
-          <option value="General Doctor Visit">General Doctor Visit (A)</option>
-          <option value="Emergency & Urgent Care">Emergency & Urgent Care (X)</option>
-          <option value="Children's Clinic">Children's Clinic (P)</option>
-          <option value="Dental & Oral Health">Dental & Oral Health (D)</option>
-          <option value="Orthopedics & Bone Clinic">Orthopedics & Bone Clinic (B)</option>
-          <option value="Folder & Patient File Admin">Folder & Patient File Admin (F)</option>
-        </select>
+      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
+        <div class="flex items-center space-x-2 w-full sm:w-auto">
+          <label class="text-xs font-bold text-slate-700 uppercase tracking-wider whitespace-nowrap">Station:</label>
+          <select id="staff-station-filter" onchange="render()" class="w-full sm:w-64 px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold outline-none focus:ring-2 focus:ring-teal-500">
+            <option value="ALL">All Hospital Stations (Main Reception / Admin)</option>
+            <option value="Medication & Pharmacy Pick-up">Medication & Pharmacy Pick-up (Z)</option>
+            <option value="Maternity & Pregnancy Care">Maternity & Pregnancy Care (E)</option>
+            <option value="General Doctor Visit">General Doctor Visit (A)</option>
+            <option value="Emergency & Urgent Care">Emergency & Urgent Care (X)</option>
+            <option value="Children's Clinic">Children's Clinic (P)</option>
+            <option value="Dental & Oral Health">Dental & Oral Health (D)</option>
+            <option value="Orthopedics & Bone Clinic">Orthopedics & Bone Clinic (B)</option>
+            <option value="Folder & Patient File Admin">Folder & Patient File Admin (F)</option>
+          </select>
+        </div>
+        <input type="text" id="staff-search-input" onkeyup="render()" placeholder="🔍 Filter by name/phone/ticket..." class="px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold outline-none focus:ring-2 focus:ring-teal-500 w-full sm:w-56">
       </div>
       <div id="station-status-badge" class="text-xs px-3 py-1 bg-teal-50 text-teal-800 border border-teal-200 rounded-full font-semibold">Showing: All Stations</div>
     </div>
@@ -216,6 +224,7 @@ body { font-family: 'Inter', sans-serif; }
       </div>
     </div>
   </section>
+
   <!-- VIEW 4: EXEC ANALYTICS (RESTRICTED) -->
   <section id="view-exec" class="hidden space-y-6">
     <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
@@ -256,12 +265,14 @@ body { font-family: 'Inter', sans-serif; }
     </div>
   </section>
 </main>
+
 <!-- STANDALONE COMPLAINT / SUPPORT BUTTON WIDGET -->
 <div id="complaint-widget-container" class="fixed bottom-5 right-5 z-50">
   <button onclick="openComplaintModal()" class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-3 rounded-full shadow-2xl flex items-center gap-2 transition transform hover:scale-105 border-2 border-rose-400 font-bold text-xs">
     <span>⚠️</span> Report Issue / Support
   </button>
 </div>
+
 <!-- PATIENT COMPLAINT MODAL -->
 <div id="patient-complaint-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
@@ -295,6 +306,7 @@ body { font-family: 'Inter', sans-serif; }
     </form>
   </div>
 </div>
+
 <!-- ADMIN ACCESS PIN MODAL -->
 <div id="admin-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl border border-slate-200">
@@ -309,6 +321,7 @@ body { font-family: 'Inter', sans-serif; }
     <p id="pin-error" class="text-xs text-rose-600 font-semibold mt-2 hidden">Invalid PIN Code. Try again.</p>
   </div>
 </div>
+
 <!-- STAFF LOGGED COMPLAINTS MODAL -->
 <div id="complaints-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[85vh] flex flex-col">
@@ -329,6 +342,7 @@ body { font-family: 'Inter', sans-serif; }
     </div>
   </div>
 </div>
+
 <!-- CHANGE PIN SECURITY MODAL -->
 <div id="change-pin-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl border border-slate-200 space-y-4">
@@ -358,6 +372,7 @@ body { font-family: 'Inter', sans-serif; }
     <p id="change-pin-error" class="text-xs text-rose-600 font-semibold hidden"></p>
   </div>
 </div>
+
 <!-- PATIENT REFERRAL / TRANSFER MODAL -->
 <div id="transfer-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl border border-slate-200 space-y-4">
@@ -386,6 +401,7 @@ body { font-family: 'Inter', sans-serif; }
     </div>
   </div>
 </div>
+
 <!-- COMPLETED RECORDS FOLDER ARCHIVE MODAL -->
 <div id="archive-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[85vh] flex flex-col">
@@ -414,6 +430,7 @@ body { font-family: 'Inter', sans-serif; }
     </div>
   </div>
 </div>
+
 <!-- n8n WEBHOOK CONFIGURATION MODAL -->
 <div id="webhook-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
@@ -490,14 +507,31 @@ body { font-family: 'Inter', sans-serif; }
     complaints: []
   };
 
-  // Real-time Firestore Sync Engine
+  // Real-time Firestore Sync Engine & Device Notification Listener
   window.subscribeToFirestore = function() {
     if (unsubscribePatients) unsubscribePatients();
     if (unsubscribeComplaints) unsubscribeComplaints();
 
     const patientsRef = collection(db, "hospitals", window.currentTenant, "patients");
     unsubscribePatients = onSnapshot(patientsRef, (snapshot) => {
+      // Map prior state by patient ID to track status updates across devices
+      const oldPatientsMap = new Map(window.state.patients.map(p => [p.id, p]));
+      
       window.state.patients = snapshot.docs.map(doc => doc.data());
+      
+      // Trigger notifications on any device (e.g. Phone) when ticket status changes from another device (e.g. Laptop)
+      window.state.patients.forEach(newP => {
+        const oldP = oldPatientsMap.get(newP.id);
+        if (oldP && oldP.status !== 'progress' && newP.status === 'progress') {
+          window.showSmsToast(`SMS Alert: Ticket #${newP.id} called to room.`);
+          window.showNotificationBanner(`🎉 Ticket #${newP.id} (${newP.name}) has been called!`);
+        }
+        if (oldP && !oldP.earlyWarningSent && newP.earlyWarningSent) {
+          window.showSmsToast(`30-MIN WARNING SMS: Ticket #${newP.id} (${newP.name}).`);
+          window.showNotificationBanner(`⚠️ Notice (Ticket #${newP.id}): Your wait time is down to ~30 mins.`);
+        }
+      });
+
       window.render();
       window.updateDynamicWaitEstimate();
       if (document.getElementById('view-exec') && !document.getElementById('view-exec').classList.contains('hidden')) {
@@ -578,8 +612,6 @@ body { font-family: 'Inter', sans-serif; }
     await updateDoc(pRef, { status: newStatus });
 
     if (newStatus === 'progress' && calledPatient) {
-      window.showSmsToast(`SMS Alert: Ticket #${id} called to room.`);
-      window.showNotificationBanner(`🎉 Ticket #${id} (${calledPatient.name}) has been called!`);
       window.checkNextInLineWarnings(calledPatient.dept);
     }
   };
@@ -603,8 +635,6 @@ body { font-family: 'Inter', sans-serif; }
     const p = window.state.patients.find(pt => pt.id === id);
     if (p) {
       await updateDoc(doc(db, "hospitals", window.currentTenant, "patients", id), { earlyWarningSent: true });
-      window.showSmsToast(`MANUAL 30-MIN WARNING SMS: Ticket #${id} notified.`);
-      window.checkQueueWarning(20);
       window.dispatchWebhook(window.n8nConfig.alertUrl, { eventType: 'manual_30_min_warning', ...p });
     }
   };
@@ -626,8 +656,6 @@ body { font-family: 'Inter', sans-serif; }
       const estimatedMinutesRemaining = index * avgMinutes;
       if (estimatedMinutesRemaining <= 30 && !nextPatient.earlyWarningSent) {
         await updateDoc(doc(db, "hospitals", window.currentTenant, "patients", nextPatient.id), { earlyWarningSent: true });
-        window.showSmsToast(`30-MIN WARNING SMS: Ticket #${nextPatient.id} (${nextPatient.name}), wait time is now ~${estimatedMinutesRemaining} mins.`);
-        window.showNotificationBanner(`⚠️ Notice (Ticket #${nextPatient.id}): Your wait time is down to ~${estimatedMinutesRemaining} mins.`);
         window.dispatchWebhook(window.n8nConfig.alertUrl, { eventType: '30_min_warning', estimatedWait: estimatedMinutesRemaining, ...nextPatient });
       }
     });
@@ -1016,9 +1044,19 @@ body { font-family: 'Inter', sans-serif; }
   };
 
   window.render = function() {
+    const patientSearchTerm = (document.getElementById('patient-search-input')?.value || '').toLowerCase().trim();
+    const staffSearchTerm = (document.getElementById('staff-search-input')?.value || '').toLowerCase().trim();
+
+    // Render Patient Portal Queue
     const queueList = document.getElementById('patient-queue-list');
     if (queueList) {
-      queueList.innerHTML = window.state.patients.map(p => `
+      const filteredPatientList = window.state.patients.filter(p => 
+        p.id.toLowerCase().includes(patientSearchTerm) || 
+        p.name.toLowerCase().includes(patientSearchTerm) ||
+        p.dept.toLowerCase().includes(patientSearchTerm)
+      );
+
+      queueList.innerHTML = filteredPatientList.length > 0 ? filteredPatientList.map(p => `
         <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
           <div class="flex items-center space-x-3">
             <span class="font-bold text-base px-3 py-1 ${p.priority ? 'bg-amber-600' : p.triage === 'urgent' ? 'bg-rose-600' : 'bg-slate-900'} text-white rounded-lg tracking-wider">${p.id}</span>
@@ -1031,8 +1069,10 @@ body { font-family: 'Inter', sans-serif; }
             <span class="text-xs font-semibold px-2.5 py-1 rounded-full ${p.status === 'waiting' ? 'bg-amber-100 text-amber-800' : p.status === 'progress' ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800'}">${p.status.toUpperCase()}</span>
           </div>
         </div>
-      `).join("");
+      `).join("") : `<p class="text-xs text-slate-400 italic text-center py-6">No matching tickets found.</p>`;
     }
+
+    // Render Lobby TV Display
     const callingDisplay = document.getElementById('display-calling-list');
     const waitingDisplay = document.getElementById('display-waiting-list');
     if (callingDisplay && waitingDisplay) {
@@ -1054,13 +1094,24 @@ body { font-family: 'Inter', sans-serif; }
         </div>
       `).join("") : `<p class="text-xs text-slate-400 italic">No patients in waiting queue.</p>`;
     }
+
+    // Render Staff Operations Board
     const stationFilter = document.getElementById('staff-station-filter');
     const selectedStation = stationFilter ? stationFilter.value : 'ALL';
     const statusBadge = document.getElementById('station-status-badge');
     if (statusBadge) {
       statusBadge.innerText = selectedStation === 'ALL' ? "Showing: All Stations" : `Station: ${selectedStation}`;
     }
-    let filteredPatients = selectedStation === 'ALL' ? window.state.patients : window.state.patients.filter(p => p.dept === selectedStation);
+
+    let filteredPatients = window.state.patients.filter(p => {
+      const matchesStation = (selectedStation === 'ALL' || p.dept === selectedStation);
+      const matchesSearch = (
+        p.id.toLowerCase().includes(staffSearchTerm) ||
+        p.name.toLowerCase().includes(staffSearchTerm) ||
+        (p.phone && p.phone.toLowerCase().includes(staffSearchTerm))
+      );
+      return matchesStation && matchesSearch;
+    });
     
     filteredPatients.sort((a, b) => {
       const aUrgent = (a.triage === 'urgent' || a.priority);
@@ -1074,6 +1125,7 @@ body { font-family: 'Inter', sans-serif; }
     if (badgeEl) badgeEl.innerText = totalCompletedCount;
     const complaintsBadge = document.getElementById('complaints-badge-count');
     if (complaintsBadge) complaintsBadge.innerText = window.state.complaints.length;
+
     ['waiting', 'progress', 'completed'].forEach(col => {
       let colPatients = filteredPatients.filter(p => p.status === col);
       const totalColCount = colPatients.length;
@@ -1086,7 +1138,7 @@ body { font-family: 'Inter', sans-serif; }
         countEl.innerText = col === 'completed' ? `${colPatients.length} shown (${totalColCount} total)` : totalColCount;
       }
       if (colEl) {
-        colEl.innerHTML = colPatients.map(p => `
+        colEl.innerHTML = colPatients.length > 0 ? colPatients.map(p => `
           <div class="p-3.5 bg-white border ${p.triage === 'urgent' ? 'border-rose-400 ring-2 ring-rose-200' : p.priority ? 'border-amber-300 ring-1 ring-amber-300' : 'border-slate-200'} rounded-xl shadow-sm space-y-2">
             <div class="flex justify-between items-start">
               <span class="font-bold text-xs px-2 py-0.5 ${p.triage === 'urgent' ? 'bg-rose-600 text-white' : p.priority ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-800'} rounded border tracking-wider">${p.id}</span>
@@ -1113,9 +1165,10 @@ body { font-family: 'Inter', sans-serif; }
               ${col === 'completed' ? '<span class="text-xs text-emerald-600 font-semibold">Archived in Folder ✓</span>' : ''}
             </div>
           </div>
-        `).join("");
+        `).join("") : `<p class="text-xs text-slate-400 italic text-center py-6">No records.</p>`;
       }
     });
+
     const totalKpi = document.getElementById('kpi-total');
     if (totalKpi) totalKpi.innerText = window.state.patients.length;
   };
