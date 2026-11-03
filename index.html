@@ -61,10 +61,11 @@ body { font-family: 'Inter', sans-serif; }
         <p class="text-slate-300 text-sm mt-2" id="lbl-sub">Get your queue ticket online, see real-time estimated wait times based on active queues, and receive live updates.</p>
       </div>
       <div class="flex flex-col items-end gap-2">
-        <!-- Tenant Switcher for Multi-Hospital Demo/Sales -->
-        <div class="bg-slate-800/90 p-2 rounded-xl border border-slate-700 text-xs flex items-center gap-2">
-          <span class="text-slate-400 font-semibold">Hospital Tenant:</span>
-          <select id="tenant-selector" onchange="switchHospitalTenant(this.value)" class="bg-slate-900 text-white px-2 py-1 rounded border border-slate-600 outline-none font-bold text-xs">
+        <!-- Tenant Switcher with Hospital Search Feature -->
+        <div class="bg-slate-800/90 p-2 rounded-xl border border-slate-700 text-xs flex flex-col sm:flex-row items-center gap-2">
+          <span class="text-slate-400 font-semibold whitespace-nowrap">Hospital Search:</span>
+          <input type="text" id="hospital-search-input" onkeyup="filterHospitals()" placeholder="🔍 Search hospital..." class="bg-slate-900 text-white px-2 py-1 rounded border border-slate-600 outline-none font-bold text-xs w-full">
+          <select id="tenant-selector" onchange="switchHospitalTenant(this.value)" class="bg-slate-900 text-white px-2 py-1 rounded border border-slate-600 outline-none font-bold text-xs w-full">
             <option value="south-rand">South Rand Hospital</option>
             <option value="edenville">Edenville Medical Centre</option>
           </select>
@@ -79,7 +80,7 @@ body { font-family: 'Inter', sans-serif; }
       </div>
     </div>
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Check-In Form -->
+      <!-- Check-In Form with Service Search Feature -->
       <div class="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm w-full max-w-md mx-auto lg:max-w-none">
         <h3 class="font-semibold text-lg text-slate-900 mb-4 pb-2 border-b border-slate-100 flex items-center justify-between">
           <span id="lbl-form-title">Get Your Queue Ticket</span>
@@ -96,6 +97,8 @@ body { font-family: 'Inter', sans-serif; }
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1" id="lbl-service">Service Category</label>
+            <!-- Service / Department Search Input -->
+            <input type="text" id="service-search-input" onkeyup="filterServiceDropdown()" placeholder="🔍 Search service category..." class="w-full px-3.5 py-1.5 mb-2 rounded-lg border border-slate-200 text-xs outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50">
             <select id="patient-dept" required onchange="updateDynamicWaitEstimate()" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none transition bg-white">
               <option value="Medication & Pharmacy Pick-up" data-prefix="Z" data-avg="5">Medication & Pharmacy Pick-up (Z-Ticket)</option>
               <option value="Maternity & Pregnancy Care" data-prefix="E" data-avg="15">Maternity & Pregnancy Care (E-Ticket)</option>
@@ -481,6 +484,31 @@ body { font-family: 'Inter', sans-serif; }
     patients: [],
     complaints: []
   };
+
+  // Hospital Tenant Search Filter
+  window.filterHospitals = function() {
+    const q = document.getElementById('hospital-search-input').value.toLowerCase().trim();
+    const selector = document.getElementById('tenant-selector');
+    Array.from(selector.options).forEach(opt => {
+      const match = opt.text.toLowerCase().includes(q);
+      opt.style.display = match ? 'block' : 'none';
+    });
+  };
+
+  // Service Dropdown Search Filter
+  window.filterServiceDropdown = function() {
+    const q = document.getElementById('service-search-input').value.toLowerCase().trim();
+    const select = document.getElementById('patient-dept');
+    let firstVisible = null;
+    Array.from(select.options).forEach(opt => {
+      const match = opt.text.toLowerCase().includes(q);
+      opt.style.display = match ? 'block' : 'none';
+      if (match && !firstVisible) firstVisible = opt;
+    });
+    if (firstVisible) select.value = firstVisible.value;
+    window.updateDynamicWaitEstimate();
+  };
+
   // Real-time Firestore Sync Engine & Cross-Device Notification Listener
   window.subscribeToFirestore = function() {
     if (unsubscribePatients) unsubscribePatients();
@@ -1019,7 +1047,7 @@ body { font-family: 'Inter', sans-serif; }
     filteredPatients.sort((a, b) => {
       const aUrgent = (a.triage === 'urgent' || a.priority);
       const bUrgent = (b.triage === 'urgent' || b.priority);
-      if (aUrgent !== bUrgent) return bUrgent - bUrgent; // handled correctly
+      if (aUrgent !== bUrgent) return bUrgent - aUrgent;
       return new Date(a.timestamp) - new Date(b.timestamp);
     });
     
