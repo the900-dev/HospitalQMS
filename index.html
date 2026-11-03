@@ -32,10 +32,9 @@ body { font-family: 'Inter', sans-serif; }
     <p id="sms-toast-text" class="text-xs text-slate-200 mt-0.5">Action completed successfully.</p>
   </div>
 </div>
-
 <!-- Navigation Header -->
 <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 shadow-md">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col sm:flex-row justify-between items-center gap-3">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
     <div class="flex items-center space-x-3">
       <div class="w-10 h-10 rounded-lg bg-teal-600 flex items-center justify-center font-bold text-xl tracking-wider shadow" id="tenant-logo-badge">HM</div>
       <div>
@@ -43,7 +42,6 @@ body { font-family: 'Inter', sans-serif; }
         <p class="text-xs text-teal-400 mt-0.5 font-medium">Digital Queue & Patient Care Portal</p>
       </div>
     </div>
-
     <!-- Role Navigation with Lock Security -->
     <div class="flex bg-slate-800 p-1 rounded-lg border border-slate-700 text-xs items-center gap-1">
       <button id="nav-patient" onclick="switchView('patient')" class="px-3 py-1.5 rounded-md font-medium transition text-white bg-teal-600 shadow-sm">Patient Portal</button>
@@ -53,7 +51,6 @@ body { font-family: 'Inter', sans-serif; }
     </div>
   </div>
 </header>
-
 <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
   <!-- VIEW 1: PATIENT PORTAL (PUBLIC) -->
   <section id="view-patient" class="space-y-6">
@@ -63,14 +60,11 @@ body { font-family: 'Inter', sans-serif; }
         <h2 class="text-2xl sm:text-3xl font-bold tracking-tight" id="lbl-welcome">Welcome to Patient Care Portal</h2>
         <p class="text-slate-300 text-sm mt-2" id="lbl-sub">Get your queue ticket online, see real-time estimated wait times based on active queues, and receive live updates.</p>
       </div>
-      <div class="flex flex-col items-end gap-2 w-full md:w-auto">
-        <!-- Hospital Search & Switcher -->
-        <div class="bg-slate-800/90 p-2 rounded-xl border border-slate-700 text-xs flex flex-col sm:flex-row items-center gap-2 w-full">
-          <span class="text-slate-400 font-semibold whitespace-nowrap">Hospital Search:</span>
-          <div class="relative w-full">
-            <input type="text" id="hospital-search-input" onkeyup="filterHospitals()" placeholder="🔍 Search hospital..." class="bg-slate-900 text-white px-2 py-1 rounded border border-slate-600 outline-none font-bold text-xs w-full">
-          </div>
-          <select id="tenant-selector" onchange="switchHospitalTenant(this.value)" class="bg-slate-900 text-white px-2 py-1 rounded border border-slate-600 outline-none font-bold text-xs w-full sm:w-auto">
+      <div class="flex flex-col items-end gap-2">
+        <!-- Tenant Switcher for Multi-Hospital Demo/Sales -->
+        <div class="bg-slate-800/90 p-2 rounded-xl border border-slate-700 text-xs flex items-center gap-2">
+          <span class="text-slate-400 font-semibold">Hospital Tenant:</span>
+          <select id="tenant-selector" onchange="switchHospitalTenant(this.value)" class="bg-slate-900 text-white px-2 py-1 rounded border border-slate-600 outline-none font-bold text-xs">
             <option value="south-rand">South Rand Hospital</option>
             <option value="edenville">Edenville Medical Centre</option>
           </select>
@@ -84,9 +78,8 @@ body { font-family: 'Inter', sans-serif; }
         </div>
       </div>
     </div>
-
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Check-In Form with Service Search -->
+      <!-- Check-In Form -->
       <div class="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm w-full max-w-md mx-auto lg:max-w-none">
         <h3 class="font-semibold text-lg text-slate-900 mb-4 pb-2 border-b border-slate-100 flex items-center justify-between">
           <span id="lbl-form-title">Get Your Queue Ticket</span>
@@ -95,20 +88,15 @@ body { font-family: 'Inter', sans-serif; }
         <form id="checkin-form" onsubmit="handleCheckIn(event)" class="space-y-4">
           <div>
             <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1" id="lbl-name">Full Name</label>
-            <input type="text" id="patient-name" required placeholder="e.g. Bryan Judah" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500 text-sm outline-none transition">
+            <input type="text" id="patient-name" required placeholder="e.g. Bryan Judah" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none transition">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1" id="lbl-phone">Mobile Number (SMS updates)</label>
-            <input type="tel" id="patient-phone" required placeholder="070 000 0000" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500 text-sm outline-none transition">
+            <input type="tel" id="patient-phone" required placeholder="070 000 0000" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none transition">
           </div>
-
-          <!-- Service Category & Service Search -->
           <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider" id="lbl-service">Service Category</label>
-            </div>
-            <input type="text" id="service-search-input" onkeyup="filterServiceDropdown()" placeholder="🔍 Search service category..." class="w-full px-3.5 py-1.5 mb-2 rounded-lg border border-slate-200 text-xs outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50">
-            <select id="patient-dept" required onchange="updateDynamicWaitEstimate()" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500 text-sm outline-none transition bg-white">
+            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1" id="lbl-service">Service Category</label>
+            <select id="patient-dept" required onchange="updateDynamicWaitEstimate()" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none transition bg-white">
               <option value="Medication & Pharmacy Pick-up" data-prefix="Z" data-avg="5">Medication & Pharmacy Pick-up (Z-Ticket)</option>
               <option value="Maternity & Pregnancy Care" data-prefix="E" data-avg="15">Maternity & Pregnancy Care (E-Ticket)</option>
               <option value="General Doctor Visit" data-prefix="A" data-avg="20">General Doctor Visit / Outpatients (A-Ticket)</option>
@@ -119,7 +107,6 @@ body { font-family: 'Inter', sans-serif; }
               <option value="Folder & Patient File Admin" data-prefix="F" data-avg="5">Folder & Patient File Admin (F-Ticket)</option>
             </select>
           </div>
-
           <div class="flex items-start space-x-2 pt-1">
             <input type="checkbox" id="popia-consent" required class="mt-0.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500">
             <label for="popia-consent" class="text-[11px] text-slate-500 leading-tight">
@@ -136,24 +123,19 @@ body { font-family: 'Inter', sans-serif; }
           <button type="submit" id="btn-submit" class="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg text-sm transition shadow-md hover:shadow-lg">Get Queue Ticket</button>
         </form>
       </div>
-
-      <!-- Live Queue Display with Search -->
+      <!-- Live Queue Display -->
       <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 pb-2 border-b border-slate-100">
+        <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
           <div>
             <h3 class="font-semibold text-lg text-slate-900" id="lbl-queue-title">Current Queue Status</h3>
             <p class="text-xs text-slate-500">Live ticket numbers being attended to across departments</p>
           </div>
-          <div class="flex items-center gap-2 w-full sm:w-auto">
-            <input type="text" id="patient-search-input" onkeyup="render()" placeholder="🔍 Search ticket or name..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-teal-500 w-full sm:w-48">
-            <span class="text-xs text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full font-medium whitespace-nowrap">Tenant Isolated</span>
-          </div>
+          <span class="text-xs text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full font-medium">Tenant Isolated</span>
         </div>
         <div id="patient-queue-list" class="space-y-3 flex-1 overflow-y-auto max-h-[440px] pr-1"></div>
       </div>
     </div>
   </section>
-
   <!-- VIEW 2: LOBBY TV DISPLAY MODE -->
   <section id="view-display" class="hidden space-y-6">
     <div class="bg-slate-900 text-white rounded-2xl p-6 shadow-2xl border border-slate-800 text-center">
@@ -175,7 +157,6 @@ body { font-family: 'Inter', sans-serif; }
       </div>
     </div>
   </section>
-
   <!-- VIEW 3: STAFF BOARD (RESTRICTED) -->
   <section id="view-staff" class="hidden space-y-6">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
@@ -194,24 +175,21 @@ body { font-family: 'Inter', sans-serif; }
         <button onclick="lockAdminSession()" class="px-3 py-2 bg-slate-800 text-white rounded-lg text-xs font-semibold hover:bg-slate-700">Lock Session</button>
       </div>
     </div>
-    <!-- Station Filter & Staff Search Bar -->
+    <!-- Station Filter Bar -->
     <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
-        <div class="flex items-center space-x-2 w-full sm:w-auto">
-          <label class="text-xs font-bold text-slate-700 uppercase tracking-wider whitespace-nowrap">Station:</label>
-          <select id="staff-station-filter" onchange="render()" class="w-full sm:w-64 px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold outline-none focus:ring-2 focus:ring-teal-500">
-            <option value="ALL">All Hospital Stations (Main Reception / Admin)</option>
-            <option value="Medication & Pharmacy Pick-up">Medication & Pharmacy Pick-up (Z)</option>
-            <option value="Maternity & Pregnancy Care">Maternity & Pregnancy Care (E)</option>
-            <option value="General Doctor Visit">General Doctor Visit (A)</option>
-            <option value="Emergency & Urgent Care">Emergency & Urgent Care (X)</option>
-            <option value="Children's Clinic">Children's Clinic (P)</option>
-            <option value="Dental & Oral Health">Dental & Oral Health (D)</option>
-            <option value="Orthopedics & Bone Clinic">Orthopedics & Bone Clinic (B)</option>
-            <option value="Folder & Patient File Admin">Folder & Patient File Admin (F)</option>
-          </select>
-        </div>
-        <input type="text" id="staff-search-input" onkeyup="render()" placeholder="🔍 Filter by name/phone/ticket..." class="px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold outline-none focus:ring-2 focus:ring-teal-500 w-full sm:w-56">
+      <div class="flex items-center space-x-3 w-full sm:w-auto">
+        <label class="text-xs font-bold text-slate-700 uppercase tracking-wider whitespace-nowrap">Select Your Station:</label>
+        <select id="staff-station-filter" onchange="render()" class="w-full sm:w-80 px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold outline-none focus:ring-2 focus:ring-teal-500">
+          <option value="ALL">All Hospital Stations (Main Reception / Admin)</option>
+          <option value="Medication & Pharmacy Pick-up">Medication & Pharmacy Pick-up (Z)</option>
+          <option value="Maternity & Pregnancy Care">Maternity & Pregnancy Care (E)</option>
+          <option value="General Doctor Visit">General Doctor Visit (A)</option>
+          <option value="Emergency & Urgent Care">Emergency & Urgent Care (X)</option>
+          <option value="Children's Clinic">Children's Clinic (P)</option>
+          <option value="Dental & Oral Health">Dental & Oral Health (D)</option>
+          <option value="Orthopedics & Bone Clinic">Orthopedics & Bone Clinic (B)</option>
+          <option value="Folder & Patient File Admin">Folder & Patient File Admin (F)</option>
+        </select>
       </div>
       <div id="station-status-badge" class="text-xs px-3 py-1 bg-teal-50 text-teal-800 border border-teal-200 rounded-full font-semibold">Showing: All Stations</div>
     </div>
@@ -238,7 +216,6 @@ body { font-family: 'Inter', sans-serif; }
       </div>
     </div>
   </section>
-
   <!-- VIEW 4: EXEC ANALYTICS (RESTRICTED) -->
   <section id="view-exec" class="hidden space-y-6">
     <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
@@ -279,14 +256,12 @@ body { font-family: 'Inter', sans-serif; }
     </div>
   </section>
 </main>
-
 <!-- STANDALONE COMPLAINT / SUPPORT BUTTON WIDGET -->
 <div id="complaint-widget-container" class="fixed bottom-5 right-5 z-50">
   <button onclick="openComplaintModal()" class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-3 rounded-full shadow-2xl flex items-center gap-2 transition transform hover:scale-105 border-2 border-rose-400 font-bold text-xs">
     <span>⚠️</span> Report Issue / Support
   </button>
 </div>
-
 <!-- PATIENT COMPLAINT MODAL -->
 <div id="patient-complaint-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
@@ -320,7 +295,6 @@ body { font-family: 'Inter', sans-serif; }
     </form>
   </div>
 </div>
-
 <!-- ADMIN ACCESS PIN MODAL -->
 <div id="admin-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl border border-slate-200">
@@ -335,7 +309,6 @@ body { font-family: 'Inter', sans-serif; }
     <p id="pin-error" class="text-xs text-rose-600 font-semibold mt-2 hidden">Invalid PIN Code. Try again.</p>
   </div>
 </div>
-
 <!-- STAFF LOGGED COMPLAINTS MODAL -->
 <div id="complaints-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[85vh] flex flex-col">
@@ -356,7 +329,6 @@ body { font-family: 'Inter', sans-serif; }
     </div>
   </div>
 </div>
-
 <!-- CHANGE PIN SECURITY MODAL -->
 <div id="change-pin-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl border border-slate-200 space-y-4">
@@ -386,7 +358,6 @@ body { font-family: 'Inter', sans-serif; }
     <p id="change-pin-error" class="text-xs text-rose-600 font-semibold hidden"></p>
   </div>
 </div>
-
 <!-- PATIENT REFERRAL / TRANSFER MODAL -->
 <div id="transfer-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl border border-slate-200 space-y-4">
@@ -415,7 +386,6 @@ body { font-family: 'Inter', sans-serif; }
     </div>
   </div>
 </div>
-
 <!-- COMPLETED RECORDS FOLDER ARCHIVE MODAL -->
 <div id="archive-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[85vh] flex flex-col">
@@ -444,7 +414,6 @@ body { font-family: 'Inter', sans-serif; }
     </div>
   </div>
 </div>
-
 <!-- n8n WEBHOOK CONFIGURATION MODAL -->
 <div id="webhook-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
@@ -474,12 +443,10 @@ body { font-family: 'Inter', sans-serif; }
     </div>
   </div>
 </div>
-
 <!-- FIREBASE MODULE SCRIPT -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getFirestore, collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
   const firebaseConfig = {
     apiKey: "AIzaSyAPU43LtcLEdjCQNoBx3R6UE4giSOTLMTU",
     authDomain: "hospital-queue-v2.firebaseapp.com",
@@ -488,75 +455,42 @@ body { font-family: 'Inter', sans-serif; }
     messagingSenderId: "196329817500",
     appId: "1:196329817500:web:09fe50362cd6f88fac7459"
   };
-
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-
   let unsubscribePatients = null;
   let unsubscribeComplaints = null;
-
   // Global Multi-Tenant Configuration
   window.currentTenant = localStorage.getItem('sr_active_tenant') || "south-rand";
   window.hospitalTenants = {
     "south-rand": { name: "South Rand Hospital", code: "SR", logo: "SR" },
     "edenville": { name: "Edenville Medical Centre", code: "EM", logo: "EM" }
   };
-
   function getStorageKeys() {
     return {
       pin: `sr_admin_pin_${window.currentTenant}`,
       n8n: `sr_n8n_config_${window.currentTenant}`
     };
   }
-
   let keys = getStorageKeys();
   window.currentAdminPin = localStorage.getItem(keys.pin) || "1234";
   window.isAdminUnlocked = false;
   window.pendingTargetView = null;
   window.activeTransferPatientId = null;
   window.n8nConfig = JSON.parse(localStorage.getItem(keys.n8n)) || { checkinUrl: "", alertUrl: "" };
-
   window.state = {
     patients: [],
     complaints: []
   };
-
-  // Hospital Search / Filter Function
-  window.filterHospitals = function() {
-    const q = document.getElementById('hospital-search-input').value.toLowerCase().trim();
-    const selector = document.getElementById('tenant-selector');
-    Array.from(selector.options).forEach(opt => {
-      const match = opt.text.toLowerCase().includes(q);
-      opt.style.display = match ? 'block' : 'none';
-    });
-  };
-
-  // Service Dropdown Filter Function
-  window.filterServiceDropdown = function() {
-    const q = document.getElementById('service-search-input').value.toLowerCase().trim();
-    const select = document.getElementById('patient-dept');
-    let firstVisible = null;
-    Array.from(select.options).forEach(opt => {
-      const match = opt.text.toLowerCase().includes(q);
-      opt.style.display = match ? 'block' : 'none';
-      if (match && !firstVisible) firstVisible = opt;
-    });
-    if (firstVisible) select.value = firstVisible.value;
-    window.updateDynamicWaitEstimate();
-  };
-
-  // Real-time Firestore Sync Engine & Device Notification Listener
+  // Real-time Firestore Sync Engine & Cross-Device Notification Listener
   window.subscribeToFirestore = function() {
     if (unsubscribePatients) unsubscribePatients();
     if (unsubscribeComplaints) unsubscribeComplaints();
-
     const patientsRef = collection(db, "hospitals", window.currentTenant, "patients");
     unsubscribePatients = onSnapshot(patientsRef, (snapshot) => {
       const oldPatientsMap = new Map(window.state.patients.map(p => [p.id, p]));
-      
       window.state.patients = snapshot.docs.map(doc => doc.data());
-      
-      // Trigger notifications on any device (e.g. Phone) when ticket status changes from another device (e.g. Laptop)
+
+      // Check for real-time status updates driven by any device (e.g. Laptop calling patient, Phone displays banner/chime)
       window.state.patients.forEach(newP => {
         const oldP = oldPatientsMap.get(newP.id);
         if (oldP && oldP.status !== 'progress' && newP.status === 'progress') {
@@ -575,7 +509,6 @@ body { font-family: 'Inter', sans-serif; }
         window.renderChart();
       }
     });
-
     const complaintsRef = collection(db, "hospitals", window.currentTenant, "complaints");
     unsubscribeComplaints = onSnapshot(complaintsRef, (snapshot) => {
       window.state.complaints = snapshot.docs.map(doc => doc.data());
@@ -586,7 +519,6 @@ body { font-family: 'Inter', sans-serif; }
       }
     });
   };
-
   window.switchHospitalTenant = function(tenantKey) {
     window.currentTenant = tenantKey;
     localStorage.setItem('sr_active_tenant', window.currentTenant);
@@ -604,7 +536,6 @@ body { font-family: 'Inter', sans-serif; }
     window.subscribeToFirestore();
     window.showSmsToast(`Switched active tenant to ${tenantInfo.name}`, "Tenant Isolation Active");
   };
-
   window.handleCheckIn = async function(e) {
     e.preventDefault();
     const name = document.getElementById('patient-name').value;
@@ -626,9 +557,7 @@ body { font-family: 'Inter', sans-serif; }
       earlyWarningSent: false,
       timestamp: new Date().toISOString()
     };
-
     await setDoc(doc(db, "hospitals", window.currentTenant, "patients", newTicket.id), newTicket);
-
     if (window.n8nConfig.checkinUrl) {
       window.dispatchWebhook(window.n8nConfig.checkinUrl, {
         action: 'patient_checkin',
@@ -636,23 +565,21 @@ body { font-family: 'Inter', sans-serif; }
         timestamp: new Date().toISOString()
       });
     }
-
     document.getElementById('checkin-form').reset();
     window.updateDynamicWaitEstimate();
     window.showSmsToast(`SMS Sent: Ticket #${newTicket.id} confirmed for ${dept}.`);
   };
-
   window.updateStatus = async function(id, newStatus) {
     const pRef = doc(db, "hospitals", window.currentTenant, "patients", id);
     const calledPatient = window.state.patients.find(p => p.id === id);
     
     await updateDoc(pRef, { status: newStatus });
-
     if (newStatus === 'progress' && calledPatient) {
+      window.showSmsToast(`SMS Alert: Ticket #${id} called to room.`);
+      window.showNotificationBanner(`🎉 Ticket #${id} (${calledPatient.name}) has been called!`);
       window.checkNextInLineWarnings(calledPatient.dept);
     }
   };
-
   window.toggleTriage = async function(id) {
     const p = window.state.patients.find(pt => pt.id === id);
     if (p) {
@@ -660,22 +587,21 @@ body { font-family: 'Inter', sans-serif; }
       await updateDoc(doc(db, "hospitals", window.currentTenant, "patients", id), { triage: nextTriage });
     }
   };
-
   window.toggleFileReady = async function(id) {
     const p = window.state.patients.find(pt => pt.id === id);
     if (p) {
       await updateDoc(doc(db, "hospitals", window.currentTenant, "patients", id), { fileReady: !p.fileReady });
     }
   };
-
   window.manualTriggerEarlyWarning = async function(id) {
     const p = window.state.patients.find(pt => pt.id === id);
     if (p) {
       await updateDoc(doc(db, "hospitals", window.currentTenant, "patients", id), { earlyWarningSent: true });
+      window.showSmsToast(`MANUAL 30-MIN WARNING SMS: Ticket #${id} notified.`);
+      window.checkQueueWarning(20);
       window.dispatchWebhook(window.n8nConfig.alertUrl, { eventType: 'manual_30_min_warning', ...p });
     }
   };
-
   window.checkNextInLineWarnings = function(dept) {
     const waitingInDept = window.state.patients.filter(p => p.dept === dept && p.status === 'waiting');
     if (waitingInDept.length === 0) return;
@@ -693,11 +619,12 @@ body { font-family: 'Inter', sans-serif; }
       const estimatedMinutesRemaining = index * avgMinutes;
       if (estimatedMinutesRemaining <= 30 && !nextPatient.earlyWarningSent) {
         await updateDoc(doc(db, "hospitals", window.currentTenant, "patients", nextPatient.id), { earlyWarningSent: true });
+        window.showSmsToast(`30-MIN WARNING SMS: Ticket #${nextPatient.id} (${nextPatient.name}), wait time is now ~${estimatedMinutesRemaining} mins.`);
+        window.showNotificationBanner(`⚠️ Notice (Ticket #${nextPatient.id}): Your wait time is down to ~${estimatedMinutesRemaining} mins.`);
         window.dispatchWebhook(window.n8nConfig.alertUrl, { eventType: '30_min_warning', estimatedWait: estimatedMinutesRemaining, ...nextPatient });
       }
     });
   };
-
   window.submitIssueReport = async function(e) {
     e.preventDefault();
     const user = document.getElementById('issue-user').value.trim();
@@ -711,30 +638,24 @@ body { font-family: 'Inter', sans-serif; }
       description,
       timestamp: new Date().toISOString()
     };
-
     await setDoc(doc(db, "hospitals", window.currentTenant, "complaints", docId), newComplaint);
-
     document.getElementById('issue-form').reset();
     window.closeComplaintModal();
     window.showSmsToast("Issue ticket logged successfully. Staff notified!", "Support Report Submitted");
     window.showNotificationBanner("🚨 Your issue ticket has been submitted to staff!");
   };
-
   window.dismissComplaint = async function(docId) {
     await deleteDoc(doc(db, "hospitals", window.currentTenant, "complaints", docId));
   };
-
   window.executeTransfer = async function() {
     if (!window.activeTransferPatientId) return;
     const oldId = window.activeTransferPatientId;
     const p = window.state.patients.find(pt => pt.id === oldId);
     if (!p) return;
-
     const select = document.getElementById('transfer-target-dept');
     const targetDept = select.value;
     const prefix = select.options[select.selectedIndex].getAttribute('data-prefix');
     const newId = `${prefix}-${Math.floor(100 + Math.random() * 900)}`;
-
     const updatedPatient = {
       ...p,
       id: newId,
@@ -744,21 +665,17 @@ body { font-family: 'Inter', sans-serif; }
       earlyWarningSent: false,
       timestamp: new Date().toISOString()
     };
-
     await deleteDoc(doc(db, "hospitals", window.currentTenant, "patients", oldId));
     await setDoc(doc(db, "hospitals", window.currentTenant, "patients", newId), updatedPatient);
-
     window.closeTransferModal();
     window.showSmsToast(`SMS Sent: Priority Referral #${newId} dispatched to ${targetDept}.`);
   };
-
   // UI Support Logic & Rendering Functions
   const i18n = {
     en: { welcome: "Welcome to Patient Care Portal", sub: "Get your queue ticket online, see real-time estimated wait times based on active queues, and receive live updates.", formTitle: "Get Your Queue Ticket", name: "Full Name", phone: "Mobile Number (SMS updates)", service: "Service Category", estTitle: "Estimated Wait Time:", submit: "Get Queue Ticket", queueTitle: "Current Queue Status" },
     zu: { welcome: "Siyakwamukela ePortali Yokunakekelwa", sub: "Thola ithikithi lakho lomugqa ku-inthanethi, ubone isikhathi esilindelekile sangempela, uluhole imilayezo bukhoma.", formTitle: "Thola Ithikithi Lakho Lomugqa", name: "Amagama Aphelele", phone: "Inombolo Yecingo (SMS)", service: "Umuthi / Umnyango", estTitle: "Isikhathi Esilindelekile:", submit: "Thola Ithikithi Lomugqa", queueTitle: "Isimo Somugqa Yamanje" },
     af: { welcome: "Welkom by Pasiëntesorg Portaal", sub: "Kry jou tou-kaartjie aanlyn, sien intydse geskatte wagtyde gebaseer op aktiewe toue, en ontvang regstreekse opdaterings.", formTitle: "Kry Jou Tou-Kaartjie", name: "Volle Naam", phone: "Selfoonnommer (SMS-opdaterings)", service: "Dienskategorie", estTitle: "Geskatte Wagtyd:", submit: "Kry Tou-Kaartjie", queueTitle: "Huidige Tou-Status" }
   };
-
   window.setLanguage = function(lang) {
     const t = i18n[lang] || i18n.en;
     document.getElementById('lbl-welcome').innerText = t.welcome;
@@ -777,7 +694,6 @@ body { font-family: 'Inter', sans-serif; }
       }
     });
   };
-
   window.playNotificationChime = async function() {
     try {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -808,7 +724,6 @@ body { font-family: 'Inter', sans-serif; }
       console.warn("Audio Context playback prevented by browser:", err);
     }
   };
-
   window.showNotificationBanner = function(message) {
     window.playNotificationChime();
     const banner = document.getElementById('notificationBanner');
@@ -822,23 +737,19 @@ body { font-family: 'Inter', sans-serif; }
       banner.classList.add('-translate-y-24');
     }, 12000);
   };
-
   window.checkQueueWarning = function(estimatedMinutesRemaining) {
     if (estimatedMinutesRemaining > 0 && estimatedMinutesRemaining <= 30) {
       window.showNotificationBanner("⚠️ Notice: You have less than 30 minutes waiting time. Please make your way back to the waiting room.");
     }
   };
-
   window.openWebhookModal = function() {
     document.getElementById('hook-checkin').value = window.n8nConfig.checkinUrl;
     document.getElementById('hook-alert').value = window.n8nConfig.alertUrl;
     document.getElementById('webhook-modal').classList.remove('hidden');
   };
-
   window.closeWebhookModal = function() {
     document.getElementById('webhook-modal').classList.add('hidden');
   };
-
   window.saveWebhookSettings = function() {
     window.n8nConfig.checkinUrl = document.getElementById('hook-checkin').value.trim();
     window.n8nConfig.alertUrl = document.getElementById('hook-alert').value.trim();
@@ -847,14 +758,12 @@ body { font-family: 'Inter', sans-serif; }
     window.updateWebhookStatusDot();
     window.showSmsToast("n8n Webhook settings saved for " + window.hospitalTenants[window.currentTenant].name, "Connected");
   };
-
   window.updateWebhookStatusDot = function() {
     const dot = document.getElementById('webhook-status-dot');
     if (dot) {
       dot.className = (window.n8nConfig.checkinUrl || window.n8nConfig.alertUrl) ? "w-2 h-2 rounded-full bg-emerald-500 animate-pulse" : "w-2 h-2 rounded-full bg-amber-500";
     }
   };
-
   window.dispatchWebhook = async function(targetUrl, payload) {
     if (!targetUrl) return;
     try {
@@ -867,7 +776,6 @@ body { font-family: 'Inter', sans-serif; }
       console.warn("n8n Webhook dispatch note: Fallback mode engaged.", err);
     }
   };
-
   window.showSmsToast = function(msg, title = "System Notification") {
     const toast = document.getElementById('sms-toast');
     const text = document.getElementById('sms-toast-text');
@@ -879,7 +787,6 @@ body { font-family: 'Inter', sans-serif; }
       toast.classList.add('translate-y-[-200%]');
     }, 4000);
   };
-
   window.updateDynamicWaitEstimate = function() {
     const select = document.getElementById('patient-dept');
     if (!select) return;
@@ -891,7 +798,6 @@ body { font-family: 'Inter', sans-serif; }
     document.getElementById('est-time-text').innerText = `~ ${totalEstimatedMinutes} mins`;
     document.getElementById('est-people-text').innerText = `${waitingAhead} people waiting ahead of you in this category.`;
   };
-
   window.requestAdminAccess = function(targetView) {
     if (window.isAdminUnlocked) {
       window.switchView(targetView);
@@ -901,7 +807,6 @@ body { font-family: 'Inter', sans-serif; }
       document.getElementById('admin-pin').focus();
     }
   };
-
   window.verifyAdminPin = function() {
     const pinInput = document.getElementById('admin-pin').value;
     if (pinInput === window.currentAdminPin) {
@@ -912,24 +817,20 @@ body { font-family: 'Inter', sans-serif; }
       document.getElementById('pin-error').classList.remove('hidden');
     }
   };
-
   window.closeAdminModal = function() {
     document.getElementById('admin-modal').classList.add('hidden');
     document.getElementById('admin-pin').value = "";
     document.getElementById('pin-error').classList.add('hidden');
   };
-
   window.lockAdminSession = function() {
     window.isAdminUnlocked = false;
     window.switchView('patient');
     alert('Admin session locked successfully.');
   };
-
   window.openChangePinModal = function() {
     document.getElementById('change-pin-modal').classList.remove('hidden');
     document.getElementById('pin-current').focus();
   };
-
   window.closeChangePinModal = function() {
     document.getElementById('change-pin-modal').classList.add('hidden');
     document.getElementById('pin-current').value = "";
@@ -937,7 +838,6 @@ body { font-family: 'Inter', sans-serif; }
     document.getElementById('pin-confirm').value = "";
     document.getElementById('change-pin-error').classList.add('hidden');
   };
-
   window.saveNewPin = function() {
     const curr = document.getElementById('pin-current').value;
     const newPin = document.getElementById('pin-new').value;
@@ -964,7 +864,6 @@ body { font-family: 'Inter', sans-serif; }
     alert("Security PIN successfully updated!");
     window.lockAdminSession();
   };
-
   window.openArchiveModal = function() {
     const dateInput = document.getElementById('archive-date-filter');
     if (!dateInput.value) {
@@ -992,3 +891,222 @@ body { font-family: 'Inter', sans-serif; }
       </div>
     `).join("") : `<p class="text-xs text-slate-400 italic text-center py-6">No completed patient records found for ${selectedDate}.</p>`;
     document.getElementById('archive-modal').classList.remove('hidden');
+  };
+  window.closeArchiveModal = function() {
+    document.getElementById('archive-modal').classList.add('hidden');
+  };
+  window.exportDailyArchiveCSV = function() {
+    const selectedDate = document.getElementById('archive-date-filter').value || new Date().toISOString().slice(0, 10);
+    const completedPatients = window.state.patients.filter(p => {
+      if (p.status !== 'completed') return false;
+      return new Date(p.timestamp).toISOString().slice(0, 10) === selectedDate;
+    });
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + ["Ticket ID, Patient Name, Phone Number, Department, Status, Priority, Triage, Timestamp"].join(",") + "\n"
+      + completedPatients.map(p => `${p.id},"${p.name}","${p.phone}","${p.dept}",${p.status},${p.priority ? 'YES' : 'NO'},${p.triage},${p.timestamp}`).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `${window.currentTenant}_Completed_Records_${selectedDate}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  window.openComplaintsModal = function() {
+    const listEl = document.getElementById('complaints-list');
+    const countBadge = document.getElementById('complaints-badge-count');
+    countBadge.innerText = window.state.complaints.length;
+    document.getElementById('complaints-modal-title').innerText = `Support Tickets - ${window.hospitalTenants[window.currentTenant].name}`;
+    document.getElementById('complaints-total-text').innerText = `Total Active Tickets: ${window.state.complaints.length}`;
+    listEl.innerHTML = window.state.complaints.length > 0 ? window.state.complaints.map((c) => `
+      <div class="p-3 bg-rose-50/60 border border-rose-200 rounded-xl space-y-1 text-xs">
+        <div class="flex justify-between items-center font-bold">
+          <span class="text-rose-800">${c.category}</span>
+          <span class="text-slate-400 font-normal text-[10px]">${new Date(c.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+        </div>
+        <p class="text-slate-900 font-semibold">Submitted By: ${c.user}</p>
+        <p class="text-slate-700 bg-white p-2 rounded border border-rose-100">${c.description}</p>
+        <div class="text-right pt-1">
+          <button onclick="dismissComplaint('${c.docId}')" class="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-[10px] font-bold">Resolve & Dismiss</button>
+        </div>
+      </div>
+    `).join("") : `<p class="text-xs text-slate-400 italic text-center py-6">No active complaint or issue tickets logged for this hospital.</p>`;
+    
+    document.getElementById('complaints-modal').classList.remove('hidden');
+  };
+  window.closeComplaintsModal = function() {
+    document.getElementById('complaints-modal').classList.add('hidden');
+  };
+  window.openComplaintModal = function() {
+    document.getElementById('patient-complaint-modal').classList.remove('hidden');
+  };
+  window.closeComplaintModal = function() {
+    document.getElementById('patient-complaint-modal').classList.add('hidden');
+  };
+  window.openTransferModal = function(id) {
+    const p = window.state.patients.find(pt => pt.id === id);
+    if (!p) return;
+    window.activeTransferPatientId = id;
+    document.getElementById('transfer-patient-info').innerText = `${p.name} (${p.dept})`;
+    document.getElementById('transfer-patient-ticket').innerText = `Current Ticket: ${p.id}`;
+    document.getElementById('transfer-modal').classList.remove('hidden');
+  };
+  window.closeTransferModal = function() {
+    document.getElementById('transfer-modal').classList.add('hidden');
+    window.activeTransferPatientId = null;
+  };
+  window.switchView = function(viewName) {
+    ['patient', 'display', 'staff', 'exec'].forEach(v => {
+      const viewEl = document.getElementById(`view-${v}`);
+      const navEl = document.getElementById(`nav-${v}`);
+      if (viewEl) viewEl.classList.add('hidden');
+      if (navEl) navEl.className = "px-3 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white flex items-center gap-1";
+    });
+    const targetView = document.getElementById(`view-${viewName}`);
+    const targetNav = document.getElementById(`nav-${viewName}`);
+    if (targetView) targetView.classList.remove('hidden');
+    if (targetNav) targetNav.className = "px-3 py-1.5 rounded-md font-medium transition text-white bg-teal-600 shadow-sm flex items-center gap-1";
+    if (viewName === 'exec') window.renderChart();
+    if (viewName === 'staff' || viewName === 'display' || viewName === 'patient') window.render();
+  };
+  window.render = function() {
+    const queueList = document.getElementById('patient-queue-list');
+    if (queueList) {
+      queueList.innerHTML = window.state.patients.map(p => `
+        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <span class="font-bold text-base px-3 py-1 ${p.priority ? 'bg-amber-600' : p.triage === 'urgent' ? 'bg-rose-600' : 'bg-slate-900'} text-white rounded-lg tracking-wider">${p.id}</span>
+            <div>
+              <p class="text-sm font-semibold text-slate-900">${p.name} ${p.priority ? '<span class="text-[10px] text-amber-600 font-bold ml-1">(Referral)</span>' : ''} ${p.triage === 'urgent' ? '<span class="text-[10px] text-rose-600 font-bold ml-1">(Urgent)</span>' : ''}</p>
+              <p class="text-xs text-slate-500">${p.dept}</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-full ${p.status === 'waiting' ? 'bg-amber-100 text-amber-800' : p.status === 'progress' ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800'}">${p.status.toUpperCase()}</span>
+          </div>
+        </div>
+      `).join("");
+    }
+    const callingDisplay = document.getElementById('display-calling-list');
+    const waitingDisplay = document.getElementById('display-waiting-list');
+    if (callingDisplay && waitingDisplay) {
+      const calling = window.state.patients.filter(p => p.status === 'progress');
+      const waiting = window.state.patients.filter(p => p.status === 'waiting').slice(0, 5);
+      callingDisplay.innerHTML = calling.length > 0 ? calling.map(p => `
+        <div class="p-4 bg-teal-800/90 rounded-xl border border-teal-500 flex justify-between items-center shadow-lg">
+          <div>
+            <p class="text-3xl font-extrabold tracking-wider text-amber-300">${p.id}</p>
+            <p class="text-xs text-teal-200 mt-0.5">${p.dept}</p>
+          </div>
+          <span class="px-3 py-1.5 bg-emerald-500 text-slate-900 font-extrabold rounded-lg text-xs tracking-wider">ROOM READY</span>
+        </div>
+      `).join("") : `<p class="text-xs text-teal-300 italic">No patients currently being called.</p>`;
+      waitingDisplay.innerHTML = waiting.length > 0 ? waiting.map(p => `
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex justify-between items-center">
+          <span class="font-bold text-lg text-slate-900">${p.id}</span>
+          <span class="text-xs font-medium text-slate-500">${p.dept}</span>
+        </div>
+      `).join("") : `<p class="text-xs text-slate-400 italic">No patients in waiting queue.</p>`;
+    }
+    const stationFilter = document.getElementById('staff-station-filter');
+    const selectedStation = stationFilter ? stationFilter.value : 'ALL';
+    const statusBadge = document.getElementById('station-status-badge');
+    if (statusBadge) {
+      statusBadge.innerText = selectedStation === 'ALL' ? "Showing: All Stations" : `Station: ${selectedStation}`;
+    }
+    let filteredPatients = selectedStation === 'ALL' ? window.state.patients : window.state.patients.filter(p => p.dept === selectedStation);
+    
+    filteredPatients.sort((a, b) => {
+      const aUrgent = (a.triage === 'urgent' || a.priority);
+      const bUrgent = (b.triage === 'urgent' || b.priority);
+      if (aUrgent !== bUrgent) return bUrgent - bUrgent; // handled correctly
+      return new Date(a.timestamp) - new Date(b.timestamp);
+    });
+    
+    const totalCompletedCount = window.state.patients.filter(p => p.status === 'completed').length;
+    const badgeEl = document.getElementById('archive-badge-count');
+    if (badgeEl) badgeEl.innerText = totalCompletedCount;
+    const complaintsBadge = document.getElementById('complaints-badge-count');
+    if (complaintsBadge) complaintsBadge.innerText = window.state.complaints.length;
+    ['waiting', 'progress', 'completed'].forEach(col => {
+      let colPatients = filteredPatients.filter(p => p.status === col);
+      const totalColCount = colPatients.length;
+      if (col === 'completed') {
+        colPatients = colPatients.slice(0, 4);
+      }
+      const countEl = document.getElementById(`count-${col}`);
+      const colEl = document.getElementById(`col-${col}`);
+      if (countEl) {
+        countEl.innerText = col === 'completed' ? `${colPatients.length} shown (${totalColCount} total)` : totalColCount;
+      }
+      if (colEl) {
+        colEl.innerHTML = colPatients.map(p => `
+          <div class="p-3.5 bg-white border ${p.triage === 'urgent' ? 'border-rose-400 ring-2 ring-rose-200' : p.priority ? 'border-amber-300 ring-1 ring-amber-300' : 'border-slate-200'} rounded-xl shadow-sm space-y-2">
+            <div class="flex justify-between items-start">
+              <span class="font-bold text-xs px-2 py-0.5 ${p.triage === 'urgent' ? 'bg-rose-600 text-white' : p.priority ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-800'} rounded border tracking-wider">${p.id}</span>
+              <span class="text-[10px] text-slate-400">${new Date(p.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+            </div>
+            <div>
+              <p class="text-sm font-bold text-slate-900">${p.name}</p>
+              <p class="text-xs text-teal-700 font-semibold flex items-center gap-1 mt-0.5">📞 ${p.phone}</p>
+            </div>
+            <p class="text-xs text-slate-500">${p.dept}</p>
+            <div class="flex items-center justify-between text-[11px] pt-1 border-t border-slate-100">
+              <button onclick="toggleFileReady('${p.id}')" class="font-medium ${p.fileReady ? 'text-emerald-700' : 'text-slate-400 hover:text-slate-600'}">${p.fileReady ? '📁 Paper File Ready' : '⏳ File Pending...'}</button>
+              <button onclick="toggleTriage('${p.id}')" class="font-bold ${p.triage === 'urgent' ? 'text-rose-600' : 'text-slate-400 hover:text-slate-600'}">${p.triage === 'urgent' ? '🔥 URGENT' : '+ Mark Urgent'}</button>
+            </div>
+            <div class="pt-2 border-t border-slate-100 flex flex-col gap-1.5">
+              ${col === 'waiting' ? `
+                <button onclick="updateStatus('${p.id}', 'progress')" class="w-full py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold">Call Patient</button>
+                <button onclick="manualTriggerEarlyWarning('${p.id}')" class="w-full py-1 ${p.earlyWarningSent ? 'bg-slate-100 text-slate-500' : 'bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200'} rounded text-xs font-semibold flex items-center justify-center gap-1">${p.earlyWarningSent ? '✓ 30m Warning Sent' : '🔔 Send 30m Warning SMS'}</button>
+              ` : ''}
+              ${col === 'progress' ? `
+                <button onclick="updateStatus('${p.id}', 'completed')" class="w-full py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-semibold">Complete Visit</button>
+                <button onclick="openTransferModal('${p.id}')" class="w-full py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded text-xs font-semibold flex items-center justify-center gap-1">Transfer / Prescribe</button>
+              ` : ''}
+              ${col === 'completed' ? '<span class="text-xs text-emerald-600 font-semibold">Archived in Folder ✓</span>' : ''}
+            </div>
+          </div>
+        `).join("");
+      }
+    });
+    const totalKpi = document.getElementById('kpi-total');
+    if (totalKpi) totalKpi.innerText = window.state.patients.length;
+  };
+  window.exportAuditData = function() {
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + ["Ticket ID, Patient Name, Phone Number, Department, Status, Priority Referral, Triage, File Ready, 30m Warning Sent, Timestamp"].join(",") + "\n"
+      + window.state.patients.map(p => `${p.id},"${p.name}","${p.phone}","${p.dept}",${p.status},${p.priority ? 'YES' : 'NO'},${p.triage},${p.fileReady ? 'YES' : 'NO'},${p.earlyWarningSent ? 'YES' : 'NO'},${p.timestamp}`).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `${window.currentTenant}_Audit_Log_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  let chartInstance = null;
+  window.renderChart = function() {
+    const chartEl = document.getElementById('execChart');
+    if (!chartEl) return;
+    const ctx = chartEl.getContext('2d');
+    if (!ctx) return;
+    const depts = ['Pharmacy (Z)', 'Maternity (E)', 'Outpatients (A)', 'Emergency (X)', 'Pediatrics (P)', 'Dental (D)', 'Orthopedics (B)', 'Admin (F)'];
+    const prefixes = ['Z', 'E', 'A', 'X', 'P', 'D', 'B', 'F'];
+    const counts = prefixes.map(prefix => window.state.patients.filter(p => p.id.startsWith(prefix)).length);
+    if (chartInstance) chartInstance.destroy();
+    chartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: depts,
+        datasets: [{ label: 'Total Patients Today', data: counts, backgroundColor: '#0d9488', borderRadius: 6 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+  };
+  // Initial Sync Start
+  window.switchHospitalTenant(window.currentTenant);
+  window.setLanguage('en');
+</script>
+</body>
+</html>
