@@ -175,7 +175,7 @@ body { font-family: 'Inter', sans-serif; }
         <button onclick="openArchiveModal()" class="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-semibold transition flex items-center gap-1">Completed Folder (<span id="archive-badge-count">0</span>)</button>
         <button onclick="openChangePinModal()" class="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg text-xs font-semibold transition flex items-center gap-1">Change PIN</button>
         <button onclick="exportAuditData()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold transition">Export Audit CSV</button>
-        <button onclick="lockAdminSession()" class="px-3 py-2 bg-slate-800 text-white rounded-lg text-xs font-semibold hover:bg-slate-700">Lock Session</button>
+        <button onclick="lockAdminSession()" class="px-3.5 py-2 bg-slate-800 text-white rounded-lg text-xs font-semibold hover:bg-slate-700">Lock Session</button>
       </div>
     </div>
     <!-- Station Filter Bar -->
@@ -461,7 +461,6 @@ body { font-family: 'Inter', sans-serif; }
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // VAPID Public Key for Web Push (Replace with your generated VAPID Public Key)
   const PUBLIC_VAPID_KEY = 'YOUR_PUBLIC_VAPID_KEY_HERE';
 
   function urlBase64ToUint8Array(base64String) {
@@ -477,7 +476,7 @@ body { font-family: 'Inter', sans-serif; }
 
   let unsubscribePatients = null;
   let unsubscribeComplaints = null;
-  // Global Multi-Tenant Configuration
+
   window.currentTenant = localStorage.getItem('sr_active_tenant') || "south-rand";
   window.hospitalTenants = {
     "south-rand": { name: "South Rand Hospital", code: "SR", logo: "SR" },
@@ -499,7 +498,7 @@ body { font-family: 'Inter', sans-serif; }
     patients: [],
     complaints: []
   };
-  // Hospital Tenant Search Filter
+
   window.filterHospitals = function() {
     const q = document.getElementById('hospital-search-input').value.toLowerCase().trim();
     const selector = document.getElementById('tenant-selector');
@@ -508,7 +507,7 @@ body { font-family: 'Inter', sans-serif; }
       opt.style.display = match ? 'block' : 'none';
     });
   };
-  // Service Dropdown Search Filter
+
   window.filterServiceDropdown = function() {
     const q = document.getElementById('service-search-input').value.toLowerCase().trim();
     const select = document.getElementById('patient-dept');
@@ -521,7 +520,7 @@ body { font-family: 'Inter', sans-serif; }
     if (firstVisible) select.value = firstVisible.value;
     window.updateDynamicWaitEstimate();
   };
-  // Real-time Firestore Sync Engine & Cross-Device Notification Listener
+
   window.subscribeToFirestore = function() {
     if (unsubscribePatients) unsubscribePatients();
     if (unsubscribeComplaints) unsubscribeComplaints();
@@ -529,7 +528,6 @@ body { font-family: 'Inter', sans-serif; }
     unsubscribePatients = onSnapshot(patientsRef, (snapshot) => {
       const oldPatientsMap = new Map(window.state.patients.map(p => [p.id, p]));
       window.state.patients = snapshot.docs.map(doc => doc.data());
-      // Check for real-time status updates driven by any device (e.g. Laptop calling patient, Phone displays banner/chime)
       window.state.patients.forEach(newP => {
         const oldP = oldPatientsMap.get(newP.id);
         if (oldP && oldP.status !== 'progress' && newP.status === 'progress') {
@@ -557,6 +555,7 @@ body { font-family: 'Inter', sans-serif; }
       }
     });
   };
+
   window.switchHospitalTenant = function(tenantKey) {
     window.currentTenant = tenantKey;
     localStorage.setItem('sr_active_tenant', window.currentTenant);
@@ -575,13 +574,11 @@ body { font-family: 'Inter', sans-serif; }
     window.showSmsToast(`Switched active tenant to ${tenantInfo.name}`, "Tenant Isolation Active");
   };
 
-  // Safe Check-In Handler with Web Push Permission & Token Capture
   window.handleCheckIn = async function(e) {
     e.preventDefault();
 
     let pushSubscription = null;
 
-    // Request Notification permission safely and register Service Worker token
     try {
       if ("Notification" in window && "serviceWorker" in navigator) {
         const permission = await Notification.requestPermission();
@@ -636,7 +633,6 @@ body { font-family: 'Inter', sans-serif; }
     window.showSmsToast(`SMS Sent: Ticket #${newTicket.id} confirmed for ${dept}.`);
   };
 
-  // Staff Status Update Handler (Calls Push Endpoint when patient is called)
   window.updateStatus = async function(id, newStatus) {
     const pRef = doc(db, "hospitals", window.currentTenant, "patients", id);
     const calledPatient = window.state.patients.find(p => p.id === id);
@@ -648,7 +644,6 @@ body { font-family: 'Inter', sans-serif; }
       window.showNotificationBanner(`🎉 Ticket #${id} (${calledPatient.name}) has been called!`);
       window.checkNextInLineWarnings(calledPatient.dept);
 
-      // Trigger Web Push Webhook via n8n Alert Endpoint if subscription exists
       if (calledPatient.pushSubscription && window.n8nConfig.alertUrl) {
         window.dispatchWebhook(window.n8nConfig.alertUrl, {
           action: 'status_update',
@@ -671,12 +666,14 @@ body { font-family: 'Inter', sans-serif; }
       await updateDoc(doc(db, "hospitals", window.currentTenant, "patients", id), { triage: nextTriage });
     }
   };
+
   window.toggleFileReady = async function(id) {
     const p = window.state.patients.find(pt => pt.id === id);
     if (p) {
       await updateDoc(doc(db, "hospitals", window.currentTenant, "patients", id), { fileReady: !p.fileReady });
     }
   };
+
   window.manualTriggerEarlyWarning = async function(id) {
     const p = window.state.patients.find(pt => pt.id === id);
     if (p) {
@@ -686,6 +683,7 @@ body { font-family: 'Inter', sans-serif; }
       window.dispatchWebhook(window.n8nConfig.alertUrl, { eventType: 'manual_30_min_warning', ...p });
     }
   };
+
   window.checkNextInLineWarnings = function(dept) {
     const waitingInDept = window.state.patients.filter(p => p.dept === dept && p.status === 'waiting');
     if (waitingInDept.length === 0) return;
@@ -709,6 +707,7 @@ body { font-family: 'Inter', sans-serif; }
       }
     });
   };
+
   window.submitIssueReport = async function(e) {
     e.preventDefault();
     const user = document.getElementById('issue-user').value.trim();
@@ -728,9 +727,11 @@ body { font-family: 'Inter', sans-serif; }
     window.showSmsToast("Issue ticket logged successfully. Staff notified!", "Support Report Submitted");
     window.showNotificationBanner("🚨 Your issue ticket has been submitted to staff!");
   };
+
   window.dismissComplaint = async function(docId) {
     await deleteDoc(doc(db, "hospitals", window.currentTenant, "complaints", docId));
   };
+
   window.executeTransfer = async function() {
     if (!window.activeTransferPatientId) return;
     const oldId = window.activeTransferPatientId;
@@ -754,12 +755,13 @@ body { font-family: 'Inter', sans-serif; }
     window.closeTransferModal();
     window.showSmsToast(`SMS Sent: Priority Referral #${newId} dispatched to ${targetDept}.`);
   };
-  // UI Support Logic & Rendering Functions
+
   const i18n = {
     en: { welcome: "Welcome to Patient Care Portal", sub: "Get your queue ticket online, see real-time estimated wait times based on active queues, and receive live updates.", formTitle: "Get Your Queue Ticket", name: "Full Name", phone: "Mobile Number (SMS updates)", service: "Service Category", estTitle: "Estimated Wait Time:", submit: "Get Queue Ticket", queueTitle: "Current Queue Status" },
     zu: { welcome: "Siyakwamukela ePortali Yokunakekelwa", sub: "Thola ithikithi lakho lomugqa ku-inthanethi, ubone isikhathi esilindelekile sangempela, uluhole imilayezo bukhoma.", formTitle: "Thola Ithikithi Lakho Lomugqa", name: "Amagama Aphelele", phone: "Inombolo Yecingo (SMS)", service: "Umuthi / Umnyango", estTitle: "Isikhathi Esilindelekile:", submit: "Thola Ithikithi Lomugqa", queueTitle: "Isimo Somugqa Yamanje" },
     af: { welcome: "Welkom by Pasiëntesorg Portaal", sub: "Kry jou tou-kaartjie aanlyn, sien intydse geskatte wagtyde gebaseer op aktiewe toue, en ontvang regstreekse opdaterings.", formTitle: "Kry Jou Tou-Kaartjie", name: "Volle Naam", phone: "Selfoonnommer (SMS-opdaterings)", service: "Dienskategorie", estTitle: "Geskatte Wagtyd:", submit: "Kry Tou-Kaartjie", queueTitle: "Huidige Tou-Status" }
   };
+
   window.setLanguage = function(lang) {
     const t = i18n[lang] || i18n.en;
     document.getElementById('lbl-welcome').innerText = t.welcome;
@@ -778,6 +780,7 @@ body { font-family: 'Inter', sans-serif; }
       }
     });
   };
+
   window.playNotificationChime = async function() {
     try {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -808,6 +811,7 @@ body { font-family: 'Inter', sans-serif; }
       console.warn("Audio Context playback prevented by browser:", err);
     }
   };
+
   window.showNotificationBanner = function(message) {
     window.playNotificationChime();
     const banner = document.getElementById('notificationBanner');
@@ -821,19 +825,23 @@ body { font-family: 'Inter', sans-serif; }
       banner.classList.add('-translate-y-24');
     }, 12000);
   };
+
   window.checkQueueWarning = function(estimatedMinutesRemaining) {
     if (estimatedMinutesRemaining > 0 && estimatedMinutesRemaining <= 30) {
       window.showNotificationBanner("⚠️ Notice: You have less than 30 minutes waiting time. Please make your way back to the waiting room.");
     }
   };
+
   window.openWebhookModal = function() {
     document.getElementById('hook-checkin').value = window.n8nConfig.checkinUrl;
     document.getElementById('hook-alert').value = window.n8nConfig.alertUrl;
     document.getElementById('webhook-modal').classList.remove('hidden');
   };
+
   window.closeWebhookModal = function() {
     document.getElementById('webhook-modal').classList.add('hidden');
   };
+
   window.saveWebhookSettings = function() {
     window.n8nConfig.checkinUrl = document.getElementById('hook-checkin').value.trim();
     window.n8nConfig.alertUrl = document.getElementById('hook-alert').value.trim();
@@ -842,12 +850,14 @@ body { font-family: 'Inter', sans-serif; }
     window.updateWebhookStatusDot();
     window.showSmsToast("n8n Webhook settings saved for " + window.hospitalTenants[window.currentTenant].name, "Connected");
   };
+
   window.updateWebhookStatusDot = function() {
     const dot = document.getElementById('webhook-status-dot');
     if (dot) {
       dot.className = (window.n8nConfig.checkinUrl || window.n8nConfig.alertUrl) ? "w-2 h-2 rounded-full bg-emerald-500 animate-pulse" : "w-2 h-2 rounded-full bg-amber-500";
     }
   };
+
   window.dispatchWebhook = async function(targetUrl, payload) {
     if (!targetUrl) return;
     try {
@@ -860,6 +870,7 @@ body { font-family: 'Inter', sans-serif; }
       console.warn("n8n Webhook dispatch note: Fallback mode engaged.", err);
     }
   };
+
   window.showSmsToast = function(msg, title = "System Notification") {
     const toast = document.getElementById('sms-toast');
     const text = document.getElementById('sms-toast-text');
@@ -871,6 +882,7 @@ body { font-family: 'Inter', sans-serif; }
       toast.classList.add('translate-y-[-200%]');
     }, 4000);
   };
+
   window.updateDynamicWaitEstimate = function() {
     const select = document.getElementById('patient-dept');
     if (!select) return;
@@ -882,6 +894,7 @@ body { font-family: 'Inter', sans-serif; }
     document.getElementById('est-time-text').innerText = `~ ${totalEstimatedMinutes} mins`;
     document.getElementById('est-people-text').innerText = `${waitingAhead} people waiting ahead of you in this category.`;
   };
+
   window.requestAdminAccess = function(targetView) {
     if (window.isAdminUnlocked) {
       window.switchView(targetView);
@@ -891,6 +904,7 @@ body { font-family: 'Inter', sans-serif; }
       document.getElementById('admin-pin').focus();
     }
   };
+
   window.verifyAdminPin = function() {
     const pinInput = document.getElementById('admin-pin').value;
     if (pinInput === window.currentAdminPin) {
@@ -901,20 +915,24 @@ body { font-family: 'Inter', sans-serif; }
       document.getElementById('pin-error').classList.remove('hidden');
     }
   };
+
   window.closeAdminModal = function() {
     document.getElementById('admin-modal').classList.add('hidden');
     document.getElementById('admin-pin').value = "";
     document.getElementById('pin-error').classList.add('hidden');
   };
+
   window.lockAdminSession = function() {
     window.isAdminUnlocked = false;
     window.switchView('patient');
     alert('Admin session locked successfully.');
   };
+
   window.openChangePinModal = function() {
     document.getElementById('change-pin-modal').classList.remove('hidden');
     document.getElementById('pin-current').focus();
   };
+
   window.closeChangePinModal = function() {
     document.getElementById('change-pin-modal').classList.add('hidden');
     document.getElementById('pin-current').value = "";
@@ -922,6 +940,7 @@ body { font-family: 'Inter', sans-serif; }
     document.getElementById('pin-confirm').value = "";
     document.getElementById('change-pin-error').classList.add('hidden');
   };
+
   window.saveNewPin = function() {
     const curr = document.getElementById('pin-current').value;
     const newPin = document.getElementById('pin-new').value;
@@ -948,6 +967,7 @@ body { font-family: 'Inter', sans-serif; }
     alert("Security PIN successfully updated!");
     window.lockAdminSession();
   };
+
   window.openArchiveModal = function() {
     const dateInput = document.getElementById('archive-date-filter');
     if (!dateInput.value) {
@@ -976,9 +996,11 @@ body { font-family: 'Inter', sans-serif; }
     `).join("") : `<p class="text-xs text-slate-400 italic text-center py-6">No completed patient records found for ${selectedDate}.</p>`;
     document.getElementById('archive-modal').classList.remove('hidden');
   };
+
   window.closeArchiveModal = function() {
     document.getElementById('archive-modal').classList.add('hidden');
   };
+
   window.exportDailyArchiveCSV = function() {
     const selectedDate = document.getElementById('archive-date-filter').value || new Date().toISOString().slice(0, 10);
     const completedPatients = window.state.patients.filter(p => {
@@ -996,6 +1018,7 @@ body { font-family: 'Inter', sans-serif; }
     link.click();
     document.body.removeChild(link);
   };
+
   window.openComplaintsModal = function() {
     const listEl = document.getElementById('complaints-list');
     const countBadge = document.getElementById('complaints-badge-count');
@@ -1018,15 +1041,19 @@ body { font-family: 'Inter', sans-serif; }
     
     document.getElementById('complaints-modal').classList.remove('hidden');
   };
+
   window.closeComplaintsModal = function() {
     document.getElementById('complaints-modal').classList.add('hidden');
   };
+
   window.openComplaintModal = function() {
     document.getElementById('patient-complaint-modal').classList.remove('hidden');
   };
+
   window.closeComplaintModal = function() {
     document.getElementById('patient-complaint-modal').classList.add('hidden');
   };
+
   window.openTransferModal = function(id) {
     const p = window.state.patients.find(pt => pt.id === id);
     if (!p) return;
@@ -1035,10 +1062,12 @@ body { font-family: 'Inter', sans-serif; }
     document.getElementById('transfer-patient-ticket').innerText = `Current Ticket: ${p.id}`;
     document.getElementById('transfer-modal').classList.remove('hidden');
   };
+
   window.closeTransferModal = function() {
     document.getElementById('transfer-modal').classList.add('hidden');
     window.activeTransferPatientId = null;
   };
+
   window.switchView = function(viewName) {
     ['patient', 'display', 'staff', 'exec'].forEach(v => {
       const viewEl = document.getElementById(`view-${v}`);
@@ -1053,6 +1082,7 @@ body { font-family: 'Inter', sans-serif; }
     if (viewName === 'exec') window.renderChart();
     if (viewName === 'staff' || viewName === 'display' || viewName === 'patient') window.render();
   };
+
   window.render = function() {
     const queueList = document.getElementById('patient-queue-list');
     if (queueList) {
@@ -1157,6 +1187,7 @@ body { font-family: 'Inter', sans-serif; }
     const totalKpi = document.getElementById('kpi-total');
     if (totalKpi) totalKpi.innerText = window.state.patients.length;
   };
+
   window.exportAuditData = function() {
     const csvContent = "data:text/csv;charset=utf-8," 
       + ["Ticket ID, Patient Name, Phone Number, Department, Status, Priority Referral, Triage, File Ready, 30m Warning Sent, Timestamp"].join(",") + "\n"
@@ -1169,6 +1200,7 @@ body { font-family: 'Inter', sans-serif; }
     link.click();
     document.body.removeChild(link);
   };
+
   let chartInstance = null;
   window.renderChart = function() {
     const chartEl = document.getElementById('execChart');
@@ -1188,7 +1220,7 @@ body { font-family: 'Inter', sans-serif; }
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
     });
   };
-  // Initial Sync Start
+
   window.switchHospitalTenant(window.currentTenant);
   window.setLanguage('en');
 </script>
