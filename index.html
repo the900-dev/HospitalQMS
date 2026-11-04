@@ -449,7 +449,7 @@ body { font-family: 'Inter', sans-serif; }
 <!-- FIREBASE MODULE SCRIPT -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getFirestore, collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { getFirestore, collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
   const firebaseConfig = {
     apiKey: "AIzaSyAPU43LtcLEdjCQNoBx3R6UE4giSOTLMTU",
     authDomain: "hospital-queue-v2.firebaseapp.com",
@@ -460,6 +460,21 @@ body { font-family: 'Inter', sans-serif; }
   };
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+
+  // VAPID Public Key for Web Push (Replace with your generated VAPID Public Key)
+  const PUBLIC_VAPID_KEY = 'YOUR_PUBLIC_VAPID_KEY_HERE';
+
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+
   let unsubscribePatients = null;
   let unsubscribeComplaints = null;
   // Global Multi-Tenant Configuration
@@ -484,7 +499,6 @@ body { font-family: 'Inter', sans-serif; }
     patients: [],
     complaints: []
   };
-
   // Hospital Tenant Search Filter
   window.filterHospitals = function() {
     const q = document.getElementById('hospital-search-input').value.toLowerCase().trim();
@@ -494,7 +508,6 @@ body { font-family: 'Inter', sans-serif; }
       opt.style.display = match ? 'block' : 'none';
     });
   };
-
   // Service Dropdown Search Filter
   window.filterServiceDropdown = function() {
     const q = document.getElementById('service-search-input').value.toLowerCase().trim();
@@ -508,7 +521,6 @@ body { font-family: 'Inter', sans-serif; }
     if (firstVisible) select.value = firstVisible.value;
     window.updateDynamicWaitEstimate();
   };
-
   // Real-time Firestore Sync Engine & Cross-Device Notification Listener
   window.subscribeToFirestore = function() {
     if (unsubscribePatients) unsubscribePatients();
@@ -517,7 +529,6 @@ body { font-family: 'Inter', sans-serif; }
     unsubscribePatients = onSnapshot(patientsRef, (snapshot) => {
       const oldPatientsMap = new Map(window.state.patients.map(p => [p.id, p]));
       window.state.patients = snapshot.docs.map(doc => doc.data());
-
       // Check for real-time status updates driven by any device (e.g. Laptop calling patient, Phone displays banner/chime)
       window.state.patients.forEach(newP => {
         const oldP = oldPatientsMap.get(newP.id);
@@ -530,7 +541,6 @@ body { font-family: 'Inter', sans-serif; }
           window.showNotificationBanner(`⚠️ Notice (Ticket #${newP.id}): Your wait time is down to ~30 mins.`);
         }
       });
-
       window.render();
       window.updateDynamicWaitEstimate();
       if (document.getElementById('view-exec') && !document.getElementById('view-exec').classList.contains('hidden')) {
@@ -564,54 +574,55 @@ body { font-family: 'Inter', sans-serif; }
     window.subscribeToFirestore();
     window.showSmsToast(`Switched active tenant to ${tenantInfo.name}`, "Tenant Isolation Active");
   };
- window.handleCheckIn = async function(e) {
-  e.preventDefault();
-  
-  // Safe notification permission request (wrapped so it never breaks buttons if blocked)
-  try {
-    if ("Notification" in window && Notification.permission === "default") {
-      await Notification.requestPermission();
+
+  // Safe Check-In Handler with Web Push Permission & Token Capture
+  window.handleCheckIn = async function(e) {
+    e.preventDefault();
+
+    let pushSubscription = null;
+
+    // Request Notification permission safely and register Service Worker token
+    try {
+      if ("Notification" in window && "serviceWorker" in navigator) {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          const registration = await navigator.serviceWorker.register('/sw.js');
+          await navigator.serviceWorker.ready;
+
+          pushSubscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY)
+          });
+        }
+      }
+    } catch (err) {
+      console.warn("Push subscription skipped or blocked:", err);
     }
-  } catch (err) {
-    console.warn("Notification permission prompt skipped:", err);
-  }
 
-  const name = document.getElementById('patient-name').value;
-  const phone = document.getElementById('patient-phone').value;
-  const select = document.getElementById('patient-dept');
-  const selectedOption = select.options[select.selectedIndex];
-  const dept = select.value;
-  const prefix = selectedOption.getAttribute('data-prefix');
-  const ticketNum = prefix + '-' + Math.floor(100 + Math.random() * 900);
-  
-  const newTicket = {
-    id: ticketNum,
-    name: name,
-    phone: phone,
-    dept: dept,
-    status: 'waiting',
-    priority: false,
-    triage: 'normal',
-    fileReady: true,
-    earlyWarningSent: false,
-    timestamp: new Date().toISOString()
-  };
+    const name = document.getElementById('patient-name').value;
+    const phone = document.getElementById('patient-phone').value;
+    const select = document.getElementById('patient-dept');
+    const selectedOption = select.options[select.selectedIndex];
+    const dept = select.value;
+    const prefix = selectedOption.getAttribute('data-prefix');
+    const ticketNum = prefix + '-' + Math.floor(100 + Math.random() * 900);
 
-  await setDoc(doc(db, "hospitals", window.currentTenant, "patients", newTicket.id), newTicket);
-  
-  if (window.n8nConfig.checkinUrl) {
-    window.dispatchWebhook(window.n8nConfig.checkinUrl, {
-      action: 'patient_checkin',
-      patient: newTicket,
+    const newTicket = {
+      id: ticketNum,
+      name: name,
+      phone: phone,
+      dept: dept,
+      status: 'waiting',
+      priority: false,
+      triage: 'normal',
+      fileReady: true,
+      earlyWarningSent: false,
+      pushSubscription: pushSubscription ? JSON.stringify(pushSubscription) : null,
       timestamp: new Date().toISOString()
-    });
-  }
+    };
 
-  document.getElementById('checkin-form').reset();
-  window.updateDynamicWaitEstimate();
-  window.showSmsToast(`SMS Sent: Ticket #${newTicket.id} confirmed for ${dept}.`);
-};
     await setDoc(doc(db, "hospitals", window.currentTenant, "patients", newTicket.id), newTicket);
+
     if (window.n8nConfig.checkinUrl) {
       window.dispatchWebhook(window.n8nConfig.checkinUrl, {
         action: 'patient_checkin',
@@ -619,21 +630,40 @@ body { font-family: 'Inter', sans-serif; }
         timestamp: new Date().toISOString()
       });
     }
+
     document.getElementById('checkin-form').reset();
     window.updateDynamicWaitEstimate();
     window.showSmsToast(`SMS Sent: Ticket #${newTicket.id} confirmed for ${dept}.`);
   };
+
+  // Staff Status Update Handler (Calls Push Endpoint when patient is called)
   window.updateStatus = async function(id, newStatus) {
     const pRef = doc(db, "hospitals", window.currentTenant, "patients", id);
     const calledPatient = window.state.patients.find(p => p.id === id);
     
     await updateDoc(pRef, { status: newStatus });
+
     if (newStatus === 'progress' && calledPatient) {
       window.showSmsToast(`SMS Alert: Ticket #${id} called to room.`);
       window.showNotificationBanner(`🎉 Ticket #${id} (${calledPatient.name}) has been called!`);
       window.checkNextInLineWarnings(calledPatient.dept);
+
+      // Trigger Web Push Webhook via n8n Alert Endpoint if subscription exists
+      if (calledPatient.pushSubscription && window.n8nConfig.alertUrl) {
+        window.dispatchWebhook(window.n8nConfig.alertUrl, {
+          action: 'status_update',
+          ticketId: calledPatient.id,
+          name: calledPatient.name,
+          phone: calledPatient.phone,
+          dept: calledPatient.dept,
+          status: newStatus,
+          subscription: JSON.parse(calledPatient.pushSubscription),
+          timestamp: new Date().toISOString()
+        });
+      }
     }
   };
+
   window.toggleTriage = async function(id) {
     const p = window.state.patients.find(pt => pt.id === id);
     if (p) {
