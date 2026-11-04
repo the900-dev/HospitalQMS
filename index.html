@@ -564,63 +564,27 @@ body { font-family: 'Inter', sans-serif; }
     window.subscribeToFirestore();
     window.showSmsToast(`Switched active tenant to ${tenantInfo.name}`, "Tenant Isolation Active");
   };
- window.handleCheckIn = async function(e) {
-  e.preventDefault();
-  
-  // Explicitly trigger notification permission prompt
-  if ("Notification" in window) {
-    if (Notification.permission === "default") {
-      const permission = await Notification.requestPermission();
-      if (permission !== "granted") {
-        window.showSmsToast("Alerts disabled: Enable notifications in site settings for background updates.", "Permissions Needed");
-      }
-    }
-  }
-
-  // Register service worker for background push handling
-  if ('serviceWorker' in navigator) {
-    try {
-      await navigator.serviceWorker.register('/sw.js');
-    } catch (err) {
-      console.warn('Service Worker registration error:', err);
-    }
-  }
-
-  const name = document.getElementById('patient-name').value;
-  const phone = document.getElementById('patient-phone').value;
-  const select = document.getElementById('patient-dept');
-  const selectedOption = select.options[select.selectedIndex];
-  const dept = select.value;
-  const prefix = selectedOption.getAttribute('data-prefix');
-  const ticketNum = prefix + '-' + Math.floor(100 + Math.random() * 900);
-  
-  const newTicket = {
-    id: ticketNum,
-    name: name,
-    phone: phone,
-    dept: dept,
-    status: 'waiting',
-    priority: false,
-    triage: 'normal',
-    fileReady: true,
-    earlyWarningSent: false,
-    timestamp: new Date().toISOString()
-  };
-
-  await setDoc(doc(db, "hospitals", window.currentTenant, "patients", newTicket.id), newTicket);
-  
-  if (window.n8nConfig.checkinUrl) {
-    window.dispatchWebhook(window.n8nConfig.checkinUrl, {
-      action: 'patient_checkin',
-      patient: newTicket,
+  window.handleCheckIn = async function(e) {
+    e.preventDefault();
+    const name = document.getElementById('patient-name').value;
+    const phone = document.getElementById('patient-phone').value;
+    const select = document.getElementById('patient-dept');
+    const selectedOption = select.options[select.selectedIndex];
+    const dept = select.value;
+    const prefix = selectedOption.getAttribute('data-prefix');
+    const ticketNum = prefix + '-' + Math.floor(100 + Math.random() * 900);
+    const newTicket = {
+      id: ticketNum,
+      name: name,
+      phone: phone,
+      dept: dept,
+      status: 'waiting',
+      priority: false,
+      triage: 'normal',
+      fileReady: true,
+      earlyWarningSent: false,
       timestamp: new Date().toISOString()
-    });
-  }
-
-  document.getElementById('checkin-form').reset();
-  window.updateDynamicWaitEstimate();
-  window.showSmsToast(`SMS Sent: Ticket #${newTicket.id} confirmed for ${dept}.`);
-};
+    };
     await setDoc(doc(db, "hospitals", window.currentTenant, "patients", newTicket.id), newTicket);
     if (window.n8nConfig.checkinUrl) {
       window.dispatchWebhook(window.n8nConfig.checkinUrl, {
