@@ -493,11 +493,10 @@ body { font-family: 'Inter', sans-serif; }
   window.isAdminUnlocked = false;
   window.pendingTargetView = null;
   window.activeTransferPatientId = null;
-  window.n8nConfig = JSON.parse(localStorage.getItem(keys.n8n)) || { checkinUrl: "", alertUrl: "" };
-  window.state = {
-    patients: [],
-    complaints: []
-  };
+ window.n8nConfig = JSON.parse(localStorage.getItem(keys.n8n)) || { 
+  checkinUrl: "https://your-n8n-server.com/webhook/hospital-checkin", 
+  alertUrl: "https://your-n8n-server.com/webhook/hospital-alert" 
+};
 
   window.filterHospitals = function() {
     const q = document.getElementById('hospital-search-input').value.toLowerCase().trim();
@@ -562,7 +561,9 @@ body { font-family: 'Inter', sans-serif; }
     keys = getStorageKeys();
     
     window.currentAdminPin = localStorage.getItem(keys.pin) || "1234";
-    window.n8nConfig = JSON.parse(localStorage.getItem(keys.n8n)) || { checkinUrl: "", alertUrl: "" };
+   window.n8nConfig = JSON.parse(localStorage.getItem(keys.n8n)) || { 
+    checkinUrl: "https://your-n8n-server.com/webhook/hospital-checkin", 
+    alertUrl: "https://your-n8n-server.com/webhook/hospital-alert" 
     
     const tenantInfo = window.hospitalTenants[window.currentTenant];
     document.getElementById('header-hospital-name').innerText = tenantInfo.name;
