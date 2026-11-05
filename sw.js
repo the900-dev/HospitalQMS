@@ -1,52 +1,70 @@
-// sw.js - Service Worker for Background Web Push
+// HospitalQMS - Background Web Push Service Worker
+
+const APP_URL = '/HospitalQMS/';
+
 self.addEventListener('push', function(event) {
-  let data = {};
-  if (event.data) {
-    try { 
-      data = event.data.json(); 
-    } catch (e) { 
-      data = { title: 'Hospital Queue System', body: event.data.text() }; 
+let data = {};
+
+```
+if (event.data) {
+    try {
+        data = event.data.json();
+    } catch (e) {
+        data = {
+            title: 'Hospital Queue System',
+            body: event.data.text()
+        };
     }
-  }
+}
 
-  const options = {
-    body: data.body || 'Your status has been updated.',
-    icon: '/icon.png',
-    badge: '/badge.png',
-    
-    // Enhanced alerts for background mode
-    vibrate: [300, 100, 300, 100, 300], // Stronger vibration pulse
-    requireInteraction: true,            // Keeps notification visible until dismissed
-    
-    data: { 
-      url: data.url || '/' 
+const options = {
+    body: data.body || 'Your queue status has been updated.',
+    icon: APP_URL + 'icon-192.png',
+    badge: APP_URL + 'icon-192.png',
+    vibrate: [300, 100, 300, 100, 300],
+    requireInteraction: true,
+
+    data: {
+        url: data.url || APP_URL
     }
-  };
+};
 
-  const notificationTitle = data.title || 'Queue Alert';
+event.waitUntil(
+    self.registration.showNotification(
+        data.title || 'Hospital Queue Alert',
+        options
+    )
+);
+```
 
-  event.waitUntil(
-    self.registration.showNotification(notificationTitle, options)
-  );
 });
 
-// Handle notification click events (brings user back to the app)
 self.addEventListener('notificationclick', function(event) {
-  event.notification.close();
+event.notification.close();
 
-  const targetUrl = (event.notification.data && event.notification.data.url) ? event.notification.data.url : '/';
+```
+const targetUrl = new URL(
+    event.notification.data?.url || APP_URL,
+    self.location.origin
+).href;
 
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
-      for (let i = 0; i < clientList.length; i++) {
-        let client = clientList[i];
-        if (client.url && 'focus' in client) {
-          return client.focus();
+event.waitUntil(
+    clients.matchAll({
+        type: 'window',
+        includeUncontrolled: true
+    }).then(function(clientList) {
+
+        for (const client of clientList) {
+            if (client.url.startsWith(self.location.origin)) {
+                return client.navigate(targetUrl).then(function(navigatedClient) {
+                    return navigatedClient.focus();
+                });
+            }
         }
-      }
-      if (clients.openWindow) {
+
         return clients.openWindow(targetUrl);
-      }
     })
-  );
+);
+```
+
 });
