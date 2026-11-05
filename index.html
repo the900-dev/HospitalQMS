@@ -450,6 +450,7 @@ body { font-family: 'Inter', sans-serif; }
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getFirestore, collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  
   const firebaseConfig = {
     apiKey: "AIzaSyAPU43LtcLEdjCQNoBx3R6UE4giSOTLMTU",
     authDomain: "hospital-queue-v2.firebaseapp.com",
@@ -461,7 +462,7 @@ body { font-family: 'Inter', sans-serif; }
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  const PUBLIC_VAPID_KEY = 'BPc9mqSc2zREGrYmzAmPk5_D8pi40qgzwgBC8KfSdXFDicQQLB9k2E0iI0u8p7CJYNHdHauTdbyyYngtN0CTdFs';
+  const PUBLIC_VAPID_KEY = 'YOUR_PUBLIC_VAPID_KEY_HERE';
 
   function urlBase64ToUint8Array(base64String) {
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -482,6 +483,7 @@ body { font-family: 'Inter', sans-serif; }
     "south-rand": { name: "South Rand Hospital", code: "SR", logo: "SR" },
     "edenville": { name: "Edenville Medical Centre", code: "EM", logo: "EM" }
   };
+
   function getStorageKeys() {
     return {
       pin: `sr_admin_pin_${window.currentTenant}`,
@@ -493,10 +495,17 @@ body { font-family: 'Inter', sans-serif; }
   window.isAdminUnlocked = false;
   window.pendingTargetView = null;
   window.activeTransferPatientId = null;
- window.n8nConfig = JSON.parse(localStorage.getItem(keys.n8n)) || { 
-  checkinUrl: "https://your-n8n-server.com/webhook/hospital-checkin", 
-  alertUrl: "https://your-n8n-server.com/webhook/hospital-alert" 
-};
+
+  // Pre-configured global production n8n webhooks
+  window.n8nConfig = JSON.parse(localStorage.getItem(keys.n8n)) || { 
+    checkinUrl: "https://your-n8n-server.com/webhook/hospital-checkin", 
+    alertUrl: "https://your-n8n-server.com/webhook/hospital-alert" 
+  };
+
+  window.state = {
+    patients: [],
+    complaints: []
+  };
 
   window.filterHospitals = function() {
     const q = document.getElementById('hospital-search-input').value.toLowerCase().trim();
@@ -561,9 +570,10 @@ body { font-family: 'Inter', sans-serif; }
     keys = getStorageKeys();
     
     window.currentAdminPin = localStorage.getItem(keys.pin) || "1234";
-   window.n8nConfig = JSON.parse(localStorage.getItem(keys.n8n)) || { 
-    checkinUrl: "https://your-n8n-server.com/webhook/hospital-checkin", 
-    alertUrl: "https://your-n8n-server.com/webhook/hospital-alert" 
+    window.n8nConfig = JSON.parse(localStorage.getItem(keys.n8n)) || { 
+      checkinUrl: "https://your-n8n-server.com/webhook/hospital-checkin", 
+      alertUrl: "https://your-n8n-server.com/webhook/hospital-alert" 
+    };
     
     const tenantInfo = window.hospitalTenants[window.currentTenant];
     document.getElementById('header-hospital-name').innerText = tenantInfo.name;
