@@ -1,4 +1,5 @@
 {
+  "id": "/",
   "name": "Hospital Queue & Patient Care System",
   "short_name": "HospitalQMS",
   "start_url": "/",
@@ -7,14 +8,25 @@
   "theme_color": "#0d9488",
   "icons": [
     {
-      "src": "/icon.png",
-      "sizes": "192x192",
-      "type": "image/png"
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%230d9488'/><text x='50%' y='50%' font-size='240' fill='white' font-family='Arial' font-weight='bold' text-anchor='middle' dominant-baseline='central'>H</text></svg>",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1280 800'><rect width='1280' height='800' fill='%230f172a'/><text x='50%' y='50%' font-size='48' fill='%232dd4bf' font-family='Arial' font-weight='bold' text-anchor='middle'>HospitalQMS Desktop Dashboard</text></svg>",
+      "sizes": "1280x800",
+      "type": "image/svg+xml",
+      "form_factor": "wide",
+      "label": "Desktop Staff and Patient Queue Dashboard"
     },
     {
-      "src": "/icon.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 750 1334'><rect width='750' height='1334' fill='%230f172a'/><text x='50%' y='50%' font-size='48' fill='%232dd4bf' font-family='Arial' font-weight='bold' text-anchor='middle'>Mobile Check-In Portal</text></svg>",
+      "sizes": "750x1334",
+      "type": "image/svg+xml",
+      "label": "Mobile Patient Check-In Portal"
     }
   ]
 }
