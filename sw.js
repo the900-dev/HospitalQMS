@@ -1,9 +1,12 @@
-// sw.js
+// sw.js - Service Worker for Background Web Push
 self.addEventListener('push', function(event) {
   let data = {};
   if (event.data) {
-    try { data = event.data.json(); } 
-    catch (e) { data = { title: 'South Rand Hospital', body: event.data.text() }; }
+    try { 
+      data = event.data.json(); 
+    } catch (e) { 
+      data = { title: 'Hospital Queue System', body: event.data.text() }; 
+    }
   }
 
   const options = {
@@ -13,18 +16,25 @@ self.addEventListener('push', function(event) {
     
     // Enhanced alerts for background mode
     vibrate: [300, 100, 300, 100, 300], // Stronger vibration pulse
-    sound: 'default',                    // Triggers native system sound
     requireInteraction: true,            // Keeps notification visible until dismissed
     
-    data: data.url || '/'
+    data: { 
+      url: data.url || '/' 
+    }
   };
 
-  self.registration.showNotification(data.title || 'Queue Alert', options);
+  const notificationTitle = data.title || 'Queue Alert';
+
+  event.waitUntil(
+    self.registration.showNotification(notificationTitle, options)
+  );
 });
 
 // Handle notification click events (brings user back to the app)
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
+
+  const targetUrl = (event.notification.data && event.notification.data.url) ? event.notification.data.url : '/';
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
@@ -35,7 +45,7 @@ self.addEventListener('notificationclick', function(event) {
         }
       }
       if (clients.openWindow) {
-        return clients.openWindow(event.notification.data.url || '/');
+        return clients.openWindow(targetUrl);
       }
     })
   );
