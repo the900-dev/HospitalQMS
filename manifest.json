@@ -7,34 +7,5 @@
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone"],
   "background_color": "#0f172a",
-  "theme_color": "#0d9488",
-  "icons": [
-    {
-      "src": "/HospitalQMS/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/HospitalQMS/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/HospitalQMS/screenshot-wide.png",
-      "sizes": "1280x800",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Desktop Staff and Patient Queue Dashboard"
-    },
-    {
-      "src": "/HospitalQMS/screenshot-mobile.png",
-      "sizes": "750x1334",
-      "type": "image/png",
-      "label": "Mobile Patient Check-In Portal"
-    }
-  ]
+  "theme_color": "#0d9488"
 }
