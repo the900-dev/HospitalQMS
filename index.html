@@ -579,7 +579,7 @@ body { font-family: 'Inter', sans-serif; }
     window.showSmsToast(`Switched active tenant to ${tenantInfo.name}`, "Tenant Isolation Active");
   };
 
-  // UPDATED CHECK-IN WITH WEB3FORMS DIRECT EMAIL RELAY
+  // CHECK-IN WITH WEB3FORMS EMAIL RELAY
   window.handleCheckIn = async function(e) {
     e.preventDefault();
     let pushSubscription = null;
@@ -654,6 +654,7 @@ body { font-family: 'Inter', sans-serif; }
     window.showSmsToast(`Confirmation email & SMS dispatched for Ticket #${newTicket.id}.`);
   };
 
+  // UPDATE STATUS WITH WEB3FORMS CALL NOTIFICATION
   window.updateStatus = async function(id, newStatus) {
     const pRef = doc(db, "hospitals", window.currentTenant, "patients", id);
     const calledPatient = window.state.patients.find(p => p.id === id);
@@ -663,20 +664,29 @@ body { font-family: 'Inter', sans-serif; }
       window.showSmsToast(`SMS Alert: Ticket #${id} called to room.`);
       window.showNotificationBanner(`🎉 Ticket #${id} (${calledPatient.name}) has been called!`);
       window.checkNextInLineWarnings(calledPatient.dept);
-      if (calledPatient.pushSubscription && window.n8nConfig.alertUrl) {
-        window.dispatchWebhook(window.n8nConfig.alertUrl, {
-          action: 'status_update',
-          ticketId: calledPatient.id,
-          name: calledPatient.name,
-          phone: calledPatient.phone,
-          dept: calledPatient.dept,
-          status: newStatus,
-          subscription: JSON.parse(calledPatient.pushSubscription),
-          timestamp: new Date().toISOString()
+      
+      // Send email when patient is called to room
+      try {
+        const formData = new FormData();
+        formData.append("access_key", "9ee7d3cb-9c68-4eb6-863d-8d80fe6c557c");
+        formData.append("subject", `PATIENT CALLED: [${calledPatient.id}] ${calledPatient.name}`);
+        formData.append("Notification Type", "Patient Called to Room");
+        formData.append("Patient Name", calledPatient.name);
+        formData.append("Ticket ID", calledPatient.id);
+        formData.append("Department", calledPatient.dept);
+        formData.append("Mobile Number", calledPatient.phone);
+        formData.append("Action Time", new Date().toLocaleString());
+
+        await fetch("https://api.web3forms.com/submit", {
+          method: "POST",
+          body: formData
         });
+      } catch (err) {
+        console.warn("Web3Forms call notification warning:", err);
       }
     }
   };
+
   window.toggleTriage = async function(id) {
     const p = window.state.patients.find(pt => pt.id === id);
     if (p) {
@@ -1068,7 +1078,9 @@ body { font-family: 'Inter', sans-serif; }
   window.render = function() {
     const queueList = document.getElementById('patient-queue-list');
     if (queueList) {
-      queueList.innerHTML = window.state.patients.map(p => `
+      // Filter out completed tickets from the public patient portal queue view
+      const activePatients = window.state.patients.filter(p => p.status !== 'completed');
+      queueList.innerHTML = activePatients.map(p => `
         <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
           <div class="flex items-center space-x-3">
             <span class="font-bold text-base px-3 py-1 ${p.priority ? 'bg-amber-600' : p.triage === 'urgent' ? 'bg-rose-600' : 'bg-slate-900'} text-white rounded-lg tracking-wider">${p.id}</span>
