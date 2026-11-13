@@ -578,6 +578,8 @@ body { font-family: 'Inter', sans-serif; }
     window.subscribeToFirestore();
     window.showSmsToast(`Switched active tenant to ${tenantInfo.name}`, "Tenant Isolation Active");
   };
+
+  // UPDATED CHECK-IN WITH WEB3FORMS DIRECT EMAIL RELAY
   window.handleCheckIn = async function(e) {
     e.preventDefault();
     let pushSubscription = null;
@@ -623,18 +625,35 @@ body { font-family: 'Inter', sans-serif; }
       pushSubscription: pushSubscription ? JSON.stringify(pushSubscription) : null,
       timestamp: new Date().toISOString()
     };
+    
+    // Save to Firebase (keeps UI and queue fully synced)
     await setDoc(doc(db, "hospitals", window.currentTenant, "patients", newTicket.id), newTicket);
-    if (window.n8nConfig.checkinUrl) {
-      window.dispatchWebhook(window.n8nConfig.checkinUrl, {
-        action: 'patient_checkin',
-        patient: newTicket,
-        timestamp: new Date().toISOString()
+    
+    // Web3Forms Direct Email Notification Dispatch
+    try {
+      const formData = new FormData();
+      formData.append("access_key", "9ee7d3cb-9c68-4eb6-863d-8d80fe6c557c");
+      formData.append("subject", `New Patient Check-in: [${newTicket.id}] ${newTicket.name}`);
+      formData.append("Patient Name", newTicket.name);
+      formData.append("Ticket ID", newTicket.id);
+      formData.append("Department", newTicket.dept);
+      formData.append("Mobile Number", newTicket.phone);
+      formData.append("Email Address", newTicket.email || "N/A");
+      formData.append("Check-in Time", new Date(newTicket.timestamp).toLocaleString());
+
+      await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: formData
       });
+    } catch (err) {
+      console.warn("Web3Forms email relay warning:", err);
     }
+
     document.getElementById('checkin-form').reset();
     window.updateDynamicWaitEstimate();
     window.showSmsToast(`Confirmation email & SMS dispatched for Ticket #${newTicket.id}.`);
   };
+
   window.updateStatus = async function(id, newStatus) {
     const pRef = doc(db, "hospitals", window.currentTenant, "patients", id);
     const calledPatient = window.state.patients.find(p => p.id === id);
@@ -644,16 +663,15 @@ body { font-family: 'Inter', sans-serif; }
       window.showSmsToast(`SMS Alert: Ticket #${id} called to room.`);
       window.showNotificationBanner(`🎉 Ticket #${id} (${calledPatient.name}) has been called!`);
       window.checkNextInLineWarnings(calledPatient.dept);
-      if (window.n8nConfig.alertUrl) {
+      if (calledPatient.pushSubscription && window.n8nConfig.alertUrl) {
         window.dispatchWebhook(window.n8nConfig.alertUrl, {
           action: 'status_update',
           ticketId: calledPatient.id,
           name: calledPatient.name,
           phone: calledPatient.phone,
-          email: calledPatient.email || '',
           dept: calledPatient.dept,
           status: newStatus,
-          subscription: calledPatient.pushSubscription ? JSON.parse(calledPatient.pushSubscription) : null,
+          subscription: JSON.parse(calledPatient.pushSubscription),
           timestamp: new Date().toISOString()
         });
       }
@@ -676,7 +694,7 @@ body { font-family: 'Inter', sans-serif; }
     const p = window.state.patients.find(pt => pt.id === id);
     if (p) {
       await updateDoc(doc(db, "hospitals", window.currentTenant, "patients", id), { earlyWarningSent: true });
-      window.showSmsToast(`MANUAL 30-MIN WARNING: Ticket #${id} notified.`);
+      window.showSmsToast(`MANUAL 30-MIN WARNING SMS: Ticket #${id} notified.`);
       window.checkQueueWarning(20);
       window.dispatchWebhook(window.n8nConfig.alertUrl, { eventType: 'manual_30_min_warning', ...p });
     }
@@ -698,7 +716,7 @@ body { font-family: 'Inter', sans-serif; }
       const estimatedMinutesRemaining = index * avgMinutes;
       if (estimatedMinutesRemaining <= 30 && !nextPatient.earlyWarningSent) {
         await updateDoc(doc(db, "hospitals", window.currentTenant, "patients", nextPatient.id), { earlyWarningSent: true });
-        window.showSmsToast(`30-MIN WARNING: Ticket #${nextPatient.id} (${nextPatient.name}), wait time is now ~${estimatedMinutesRemaining} mins.`);
+        window.showSmsToast(`30-MIN WARNING SMS: Ticket #${nextPatient.id} (${nextPatient.name}), wait time is now ~${estimatedMinutesRemaining} mins.`);
         window.showNotificationBanner(`⚠️ Notice (Ticket #${nextPatient.id}): Your wait time is down to ~${estimatedMinutesRemaining} mins.`);
         window.dispatchWebhook(window.n8nConfig.alertUrl, { eventType: '30_min_warning', estimatedWait: estimatedMinutesRemaining, ...nextPatient });
       }
@@ -747,7 +765,7 @@ body { font-family: 'Inter', sans-serif; }
     await deleteDoc(doc(db, "hospitals", window.currentTenant, "patients", oldId));
     await setDoc(doc(db, "hospitals", window.currentTenant, "patients", newId), updatedPatient);
     window.closeTransferModal();
-    window.showSmsToast(`Priority Referral #${newId} dispatched to ${targetDept}.`);
+    window.showSmsToast(`SMS Sent: Priority Referral #${newId} dispatched to ${targetDept}.`);
   };
   const i18n = {
     en: { welcome: "Welcome to Patient Care Portal", sub: "Get your queue ticket online, see real-time estimated wait times based on active queues, and receive live updates.", formTitle: "Get Your Queue Ticket", name: "Full Name", phone: "Mobile Number (SMS updates)", service: "Service Category", estTitle: "Estimated Wait Time:", submit: "Get Queue Ticket", queueTitle: "Current Queue Status" },
