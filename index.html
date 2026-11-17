@@ -579,7 +579,7 @@ body { font-family: 'Inter', sans-serif; }
     window.showSmsToast(`Switched active tenant to ${tenantInfo.name}`, "Tenant Isolation Active");
   };
 
-  // CHECK-IN WITH WEB3FORMS EMAIL RELAY
+  // CHECK-IN WITH WEB3FORMS EMAIL RELAY & REPLY-TO
   window.handleCheckIn = async function(e) {
     e.preventDefault();
     let pushSubscription = null;
@@ -629,11 +629,12 @@ body { font-family: 'Inter', sans-serif; }
     // Save to Firebase (keeps UI and queue fully synced)
     await setDoc(doc(db, "hospitals", window.currentTenant, "patients", newTicket.id), newTicket);
     
-    // Web3Forms Direct Email Notification Dispatch
+    // Web3Forms Direct Email Notification Dispatch with Reply-To
     try {
       const formData = new FormData();
       formData.append("access_key", "9ee7d3cb-9c68-4eb6-863d-8d80fe6c557c");
       formData.append("subject", `New Patient Check-in: [${newTicket.id}] ${newTicket.name}`);
+      formData.append("replyto", newTicket.email);
       formData.append("Patient Name", newTicket.name);
       formData.append("Ticket ID", newTicket.id);
       formData.append("Department", newTicket.dept);
@@ -670,6 +671,7 @@ body { font-family: 'Inter', sans-serif; }
         const formData = new FormData();
         formData.append("access_key", "9ee7d3cb-9c68-4eb6-863d-8d80fe6c557c");
         formData.append("subject", `PATIENT CALLED: [${calledPatient.id}] ${calledPatient.name}`);
+        formData.append("replyto", calledPatient.email || "precisionpointadvisorysa@gmail.com");
         formData.append("Notification Type", "Patient Called to Room");
         formData.append("Patient Name", calledPatient.name);
         formData.append("Ticket ID", calledPatient.id);
