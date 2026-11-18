@@ -664,7 +664,6 @@ body { font-family: 'Inter', sans-serif; }
     if (newStatus === 'progress' && calledPatient) {
       window.showSmsToast(`SMS Alert: Ticket #${id} called to room.`);
       window.showNotificationBanner(`🎉 Ticket #${id} (${calledPatient.name}) has been called!`);
-      window.checkNextInLineWarnings(calledPatient.dept);
       
       // Send email when patient is called to room
       try {
@@ -702,38 +701,38 @@ body { font-family: 'Inter', sans-serif; }
       await updateDoc(doc(db, "hospitals", window.currentTenant, "patients", id), { fileReady: !p.fileReady });
     }
   };
+
+  // MANUAL 30-MIN WARNING (TRIGGERED BY RECEPTIONIST/ADMIN) WITH WEB3FORMS EMAIL
   window.manualTriggerEarlyWarning = async function(id) {
     const p = window.state.patients.find(pt => pt.id === id);
     if (p) {
       await updateDoc(doc(db, "hospitals", window.currentTenant, "patients", id), { earlyWarningSent: true });
-      window.showSmsToast(`MANUAL 30-MIN WARNING SMS: Ticket #${id} notified.`);
-      window.checkQueueWarning(20);
-      window.dispatchWebhook(window.n8nConfig.alertUrl, { eventType: 'manual_30_min_warning', ...p });
-    }
-  };
-  window.checkNextInLineWarnings = function(dept) {
-    const waitingInDept = window.state.patients.filter(p => p.dept === dept && p.status === 'waiting');
-    if (waitingInDept.length === 0) return;
-    const select = document.getElementById('patient-dept');
-    let avgMinutes = 10;
-    if (select) {
-      for (let option of select.options) {
-        if (option.value === dept) {
-          avgMinutes = parseInt(option.getAttribute('data-avg')) || 10;
-          break;
-        }
+      window.showSmsToast(`MANUAL 30-MIN WARNING: Ticket #${id} (${p.name}) notified.`);
+      window.showNotificationBanner(`⚠️ Notice (Ticket #${id}): Your wait time is down to ~30 mins.`);
+
+      // Send manual warning notification via Web3Forms straight to inbox / reply-to patient
+      try {
+        const formData = new FormData();
+        formData.append("access_key", "9ee7d3cb-9c68-4eb6-863d-8d80fe6c557c");
+        formData.append("subject", `QUEUE WARNING (30-MINS): [${p.id}] ${p.name}`);
+        formData.append("replyto", p.email || "precisionpointadvisorysa@gmail.com");
+        formData.append("Notification Type", "30-Minute Queue Warning");
+        formData.append("Patient Name", p.name);
+        formData.append("Ticket ID", p.id);
+        formData.append("Department", p.dept);
+        formData.append("Mobile Number", p.phone);
+        formData.append("Action Time", new Date().toLocaleString());
+
+        await fetch("https://api.web3forms.com/submit", {
+          method: "POST",
+          body: formData
+        });
+      } catch (err) {
+        console.warn("Web3Forms manual warning notification error:", err);
       }
     }
-    waitingInDept.forEach(async (nextPatient, index) => {
-      const estimatedMinutesRemaining = index * avgMinutes;
-      if (estimatedMinutesRemaining <= 30 && !nextPatient.earlyWarningSent) {
-        await updateDoc(doc(db, "hospitals", window.currentTenant, "patients", nextPatient.id), { earlyWarningSent: true });
-        window.showSmsToast(`30-MIN WARNING SMS: Ticket #${nextPatient.id} (${nextPatient.name}), wait time is now ~${estimatedMinutesRemaining} mins.`);
-        window.showNotificationBanner(`⚠️ Notice (Ticket #${nextPatient.id}): Your wait time is down to ~${estimatedMinutesRemaining} mins.`);
-        window.dispatchWebhook(window.n8nConfig.alertUrl, { eventType: '30_min_warning', estimatedWait: estimatedMinutesRemaining, ...nextPatient });
-      }
-    });
   };
+
   window.submitIssueReport = async function(e) {
     e.preventDefault();
     const user = document.getElementById('issue-user').value.trim();
@@ -844,11 +843,6 @@ body { font-family: 'Inter', sans-serif; }
       banner.classList.remove('translate-y-0');
       banner.classList.add('-translate-y-24');
     }, 12000);
-  };
-  window.checkQueueWarning = function(estimatedMinutesRemaining) {
-    if (estimatedMinutesRemaining > 0 && estimatedMinutesRemaining <= 30) {
-      window.showNotificationBanner("⚠️ Notice: You have less than 30 minutes waiting time. Please make your way back to the waiting room.");
-    }
   };
   window.openWebhookModal = function() {
     document.getElementById('hook-checkin').value = window.n8nConfig.checkinUrl;
